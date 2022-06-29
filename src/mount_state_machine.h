@@ -3,17 +3,17 @@
 
 #include "mount_controller.h"
 #include "remote.h"
-#define MAX_UP_CURRENT 100
-#define MAX_DOWN_CURRENT 100
-#define MAX_LEFT_CURRENT 100
-#define MAX_RIGHT_CURRENT 100
+#define MAX_UP_CURRENT 400
+#define MAX_DOWN_CURRENT 200
+#define MAX_LEFT_CURRENT 40
+#define MAX_RIGHT_CURRENT 40
 #define MAX_TICKS_WITH_OVER_CURRENT 5
 #define ZERO_CURRENT 2
 #define MAX_TICKS_WITH_ZERO_CURRENT 5
-#define MIN_DIST_FROM_WALL 100
+#define MIN_DIST_FROM_WALL 200
 #define SETUP_WAIT 1000
-#define TICK 20
-#define TICKS_TO_WAIT_AFTER_FAULT 2000 / TICK
+#define TICK 10
+#define TICKS_TO_WAIT_AFTER_FAULT 200 / TICK
 
 class MountStateMachine {
   public: enum Event { NONE, DOWN_PRESSED, UP_PRESSED, RIGHT_PRESSED,

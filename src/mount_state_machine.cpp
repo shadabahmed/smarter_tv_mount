@@ -84,6 +84,7 @@ MountStateMachine::State MountStateMachine::updateMovingDownState(Event event) {
     case NONE:
     case DOWN_REACHED: mountController->stop(); return READY;
     case FAULT_DETECTED: mountController->stop(); return FAULT;
+    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
     default: return MOVING_DOWN;
   }
 }
@@ -93,6 +94,7 @@ MountStateMachine::State MountStateMachine::updateMovingUpState(Event event) {
     case NONE:
     case UP_REACHED: mountController->stop(); return READY;
     case FAULT_DETECTED: mountController->stop(); return FAULT;
+    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
     default: return MOVING_UP;
   }
 }
@@ -102,6 +104,8 @@ MountStateMachine::State MountStateMachine::updateMovingRightState(Event event) 
     case NONE:
     case RIGHT_REACHED: mountController->stop(); return READY;
     case FAULT_DETECTED: mountController->stop(); return FAULT;
+    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
+    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
     default: return MOVING_RIGHT;
   }
 }
@@ -111,6 +115,8 @@ MountStateMachine::State MountStateMachine::updateMovingLeftState(Event event) {
     case NONE:
     case LEFT_REACHED: mountController->stop(); return READY;
     case FAULT_DETECTED: mountController->stop(); return FAULT;
+    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
+    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
     default: return MOVING_LEFT;
   }
 }
@@ -119,7 +125,7 @@ MountStateMachine::State MountStateMachine::updateAutoMovingDownState(Event even
   switch(event) {
     case DOWN_REACHED: mountController->stop(); return READY;
     case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_OFF: mountController->stop(); mountController->moveUp(); return AUTO_MOVING_UP;
+    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
     case UP_PRESSED:
     case DOWN_PRESSED:
     case LEFT_PRESSED:
@@ -133,7 +139,7 @@ MountStateMachine::State MountStateMachine::updateAutoMovingUpState(Event event)
   switch(event) {
     case UP_REACHED: mountController->stop(); return READY;
     case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_ON: mountController->stop(); mountController->moveDown(); return AUTO_MOVING_DOWN;
+    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
     case UP_PRESSED:
     case DOWN_PRESSED:
     case LEFT_PRESSED:
@@ -233,8 +239,11 @@ MountStateMachine::Event MountStateMachine::getTvEvent() {
 }
 
 MountStateMachine::Event MountStateMachine::getUpperLimitEvent(){
-  if (mountController->getDistanceFromWall() <= MIN_DIST_FROM_WALL){
-    return UP_REACHED;
+  static Event prevEvent = NONE;
+  if (prevEvent != UP_REACHED && mountController->getDistanceFromWall() <= MIN_DIST_FROM_WALL){
+    return prevEvent = UP_REACHED;
+  } else if (mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL) {
+    return prevEvent = NONE;
   }
   return NONE;
 }
@@ -277,9 +286,10 @@ MountStateMachine::Event MountStateMachine::getRemoteEvent(){
 }
 
 void MountStateMachine::printInfo(Event event) {
-  static char info[144];
+  char info[144];
+  __attribute__((address(0x100))) const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%16s\r\nEvt:%17s";
   Debug::home();
-  snprintf(info, sizeof(info), "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%15s\r\nEvt:%17s",
+  snprintf(info, sizeof(info), fmt,
            mountController->isTvTurnedOn() ? "ON" : "OFF",
            mountController->getUpDownMotorCurrent(),
            mountController->getLeftRightMotorCurrent(),
