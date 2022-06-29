@@ -25,7 +25,7 @@
 #define MOTOR1_SEL_A_PIN 3
 #define MOTOR1_IN_B_PIN 4
 #define MOTOR1_CURRENT_SENSE_INPUT A1
-#define MOTOR1_DUTY_CYCLE 80
+#define MOTOR1_DUTY_CYCLE 95
 #define UP_DIR 1
 #define DOWN_DIR 0
 
@@ -35,9 +35,9 @@
 #define MOTOR2_SEL_A_PIN 7
 #define MOTOR2_IN_B_PIN 9
 #define MOTOR2_CURRENT_SENSE_INPUT A0
-#define MOTOR2_DUTY_CYCLE 80
-#define LEFT_DIR 1
-#define RIGHT_DIR 0
+#define MOTOR2_DUTY_CYCLE 50
+#define LEFT_DIR 0
+#define RIGHT_DIR 1
 
 class MountController {
   public:
@@ -56,7 +56,6 @@ class MountController {
     MotorController *upDownController;
     MotorController *leftRightController;
 #ifdef USE_DISTANCE_SENSOR
-    //Adafruit_VL53L0X *lox;
     Seeed_vl53l0x* sensor;
 #endif
 };
