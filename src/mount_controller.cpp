@@ -26,19 +26,21 @@ void MountController::setup() {
 #endif
 }
 
-unsigned int MountController::getDistanceFromWall() {
+unsigned int MountController::getDistanceFromWall(bool refresh) {
 #if defined(USE_DISTANCE_SENSOR)
   static int index = 0;
   static unsigned int readings[DISTANCE_AVG_WINDOW_SIZE];
-  VL53L0X_RangingMeasurementData_t RangingMeasurementData;
-  VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+  if (refresh) {
+    VL53L0X_RangingMeasurementData_t RangingMeasurementData;
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 
-  memset(&RangingMeasurementData, 0, sizeof(VL53L0X_RangingMeasurementData_t));
-  Status = sensor->PerformSingleRangingMeasurement(&RangingMeasurementData);
+    memset(&RangingMeasurementData, 0, sizeof(VL53L0X_RangingMeasurementData_t));
+    Status = sensor->PerformSingleRangingMeasurement(&RangingMeasurementData);
 
-  if(VL53L0X_ERROR_NONE == Status) {
-    readings[index++] = RangingMeasurementData.RangeMilliMeter >= 2000 ? 2000 : RangingMeasurementData.RangeMilliMeter;
-    index = index == DISTANCE_AVG_WINDOW_SIZE ? 0 : index;
+    if(VL53L0X_ERROR_NONE == Status) {
+      readings[index++] = RangingMeasurementData.RangeMilliMeter >= 2000 ? 2000 : RangingMeasurementData.RangeMilliMeter;
+      index = index == DISTANCE_AVG_WINDOW_SIZE ? 0 : index;
+    }
   }
   unsigned int sum = 0;
   for(int i = 0; i < DISTANCE_AVG_WINDOW_SIZE; i++) {

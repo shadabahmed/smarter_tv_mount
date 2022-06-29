@@ -25,7 +25,8 @@
 #define MOTOR1_SEL_A_PIN 3
 #define MOTOR1_IN_B_PIN 4
 #define MOTOR1_CURRENT_SENSE_INPUT A1
-#define MOTOR1_DUTY_CYCLE 95
+#define MOTOR1_DUTY_CYCLE 100
+#define MOTOR1_SLOW_DUTY_CYCLE 75
 #define UP_DIR 1
 #define DOWN_DIR 0
 
@@ -44,6 +45,7 @@ class MountController {
     MountController();
     void setup();
     void moveUp() { upDownController->run(UP_DIR, MOTOR1_DUTY_CYCLE); };
+    void moveUpSlow() { upDownController->run(UP_DIR, MOTOR1_SLOW_DUTY_CYCLE); };
     void moveDown() { upDownController->run(DOWN_DIR, MOTOR1_DUTY_CYCLE); };
     void moveLeft() { leftRightController->run(LEFT_DIR, MOTOR2_DUTY_CYCLE); };
     void moveRight() { leftRightController->run(RIGHT_DIR, MOTOR2_DUTY_CYCLE); };
@@ -51,7 +53,7 @@ class MountController {
     int getLeftRightMotorCurrent() { return leftRightController->getCurrent(); };
     bool isTvTurnedOn() { return digitalRead(TV_PIN) == TV_ON; };
     void stop() { upDownController->stop(); leftRightController->stop(); };
-    unsigned int getDistanceFromWall();
+    unsigned int getDistanceFromWall(bool = false);
   private:
     MotorController *upDownController;
     MotorController *leftRightController;

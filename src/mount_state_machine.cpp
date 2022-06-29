@@ -124,9 +124,10 @@ MountStateMachine::Event MountStateMachine::getTvEvent() {
 
 MountStateMachine::Event MountStateMachine::getUpperLimitEvent(){
   static Event prevEvent = NONE;
-  if (prevEvent != UP_REACHED && mountController->getDistanceFromWall() <= MIN_DIST_FROM_WALL){
+  unsigned int distanceFromWall = mountController->getDistanceFromWall(true);
+  if (prevEvent != UP_REACHED && distanceFromWall <= MIN_DIST_FROM_WALL){
     return prevEvent = UP_REACHED;
-  } else if (mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL) {
+  } else if (distanceFromWall > MIN_DIST_FROM_WALL) {
     return prevEvent = NONE;
   }
   return NONE;
