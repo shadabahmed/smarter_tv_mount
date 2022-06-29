@@ -4,7 +4,7 @@
 MountStateMachine::MountStateMachine() {
   this->mountController = new MountController();
   this->remote = new Remote();
-  this->state = READY;
+  this->state = STOPPED;
 }
 
 void MountStateMachine::setup() {
@@ -47,7 +47,7 @@ MountStateMachine::Event MountStateMachine::getEvent() {
 MountStateMachine::Event MountStateMachine::getUpDownMotorEvent() {
   static int ticksWithOverCurrent = 0;
 
-  if (state == READY) {
+  if (state == STOPPED) {
     ticksWithOverCurrent = 0;
     return NONE;
   }
@@ -80,7 +80,7 @@ MountStateMachine::Event MountStateMachine::getUpDownMotorEvent() {
 MountStateMachine::Event MountStateMachine::getLeftRightMotorEvent() {
   static int ticksWithOverCurrent = 0;
 
-  if (state == READY) {
+  if (state == STOPPED) {
     ticksWithOverCurrent = 0;
     return NONE;
   }
@@ -136,7 +136,7 @@ MountStateMachine::Event MountStateMachine::getUpperLimitEvent(){
 MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
   static int ticksWithZeroCurrent = 0;
 
-  if (state == READY) {
+  if (state == STOPPED) {
     ticksWithZeroCurrent = 0;
     return NONE;
   }
@@ -173,7 +173,7 @@ MountStateMachine::Event MountStateMachine::getRemoteEvent(){
 bool MountStateMachine::transitionState(Event event) {
    State nextState = getNextState(event);
    switch (nextState) {
-    case READY: return transitionToReady();
+    case STOPPED: return transitionToStopped();
     case MOVING_DOWN: return transitionToMovingDown();
     case MOVING_UP: return transitionToMovingUp();
     case MOVING_RIGHT: return transitionToMovingRight();
@@ -187,7 +187,7 @@ bool MountStateMachine::transitionState(Event event) {
 
 MountStateMachine::State MountStateMachine::getNextState(Event event) {
   switch (this->state) {
-    case READY: return getNextStateForReady(event);
+    case STOPPED: return getNextStateForStopped(event);
     case MOVING_DOWN: return getNextStateForMovingDown(event);
     case MOVING_UP: return getNextStateForMovingUp(event);
     case MOVING_RIGHT: return getNextStateForMovingRight(event);
@@ -199,7 +199,7 @@ MountStateMachine::State MountStateMachine::getNextState(Event event) {
   }
 }
 
-MountStateMachine::State MountStateMachine::getNextStateForReady(Event event) {
+MountStateMachine::State MountStateMachine::getNextStateForStopped(Event event) {
   switch(event) {
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
     case UP_PRESSED: return MOVING_UP;
@@ -207,14 +207,14 @@ MountStateMachine::State MountStateMachine::getNextStateForReady(Event event) {
     case DOWN_PRESSED: return MOVING_DOWN;
     case LEFT_PRESSED: return MOVING_LEFT;
     case RIGHT_PRESSED: return MOVING_RIGHT;
-    default: return READY;
+    default: return STOPPED;
   }
 }
 
 MountStateMachine::State MountStateMachine::getNextStateForMovingDown(Event event) {
   switch(event) {
     case NONE:
-    case DOWN_REACHED: return READY;
+    case DOWN_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
     default: return MOVING_DOWN;
@@ -224,7 +224,7 @@ MountStateMachine::State MountStateMachine::getNextStateForMovingDown(Event even
 MountStateMachine::State MountStateMachine::getNextStateForMovingUp(Event event) {
   switch(event) {
     case NONE:
-    case UP_REACHED: return READY;
+    case UP_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_ON: return AUTO_MOVING_DOWN;
     default: return MOVING_UP;
@@ -234,7 +234,7 @@ MountStateMachine::State MountStateMachine::getNextStateForMovingUp(Event event)
 MountStateMachine::State MountStateMachine::getNextStateForMovingRight(Event event) {
   switch(event) {
     case NONE:
-    case RIGHT_REACHED: return READY;
+    case RIGHT_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_ON: return AUTO_MOVING_DOWN;
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
@@ -245,7 +245,7 @@ MountStateMachine::State MountStateMachine::getNextStateForMovingRight(Event eve
 MountStateMachine::State MountStateMachine::getNextStateForMovingLeft(Event event) {
   switch(event) {
     case NONE:
-    case RIGHT_REACHED: return READY;
+    case LEFT_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_ON: return AUTO_MOVING_DOWN;
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
@@ -255,13 +255,13 @@ MountStateMachine::State MountStateMachine::getNextStateForMovingLeft(Event even
 
 MountStateMachine::State MountStateMachine::getNextStateForAutoMovingDown(Event event) {
   switch(event) {
-    case DOWN_REACHED: return READY;
+    case DOWN_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
     case UP_PRESSED:
     case DOWN_PRESSED:
     case LEFT_PRESSED:
-    case RIGHT_PRESSED: return READY;
+    case RIGHT_PRESSED: return STOPPED;
     case NONE:
     default: return AUTO_MOVING_DOWN;
   }
@@ -269,13 +269,13 @@ MountStateMachine::State MountStateMachine::getNextStateForAutoMovingDown(Event 
 
 MountStateMachine::State MountStateMachine::getNextStateForAutoMovingUp(Event event) {
   switch(event) {
-    case DOWN_REACHED: return READY;
+    case UP_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_ON: return AUTO_MOVING_DOWN;
     case UP_PRESSED:
     case DOWN_PRESSED:
     case LEFT_PRESSED:
-    case RIGHT_PRESSED: return READY;
+    case RIGHT_PRESSED: return STOPPED;
     case NONE:
     default: return AUTO_MOVING_UP;
   }
@@ -287,14 +287,14 @@ MountStateMachine::State MountStateMachine::getNextStateForFault(Event) {
   if (ticks++ == TICKS_TO_WAIT_AFTER_FAULT) {
     ticks = 0;
     digitalWrite(LED_BUILTIN, 0);
-    return READY;
+    return STOPPED;
   }
   return FAULT;
 }
 
-bool MountStateMachine::transitionToReady() {
+bool MountStateMachine::transitionToStopped() {
   mountController->stop();
-  state = READY;
+  state = STOPPED;
   return true;
 }
 
@@ -309,10 +309,12 @@ bool MountStateMachine::transitionToMovingDown() {
 
 bool MountStateMachine::transitionToMovingUp() {
   if (canMoveUp()) {
-    mountController->moveUp();
+    digitalWrite(LED_BUILTIN, shouldSlowMoveUp());
+    shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
     state = MOVING_UP;
     return true;
   }
+  digitalWrite(LED_BUILTIN, 0);
   return false;
 }
 
@@ -336,9 +338,12 @@ bool MountStateMachine::transitionToMovingLeft() {
 
 bool MountStateMachine::transitionToAutoMovingUp() {
   if (canMoveUp()) {
-    mountController->moveDown();
-    return AUTO_MOVING_UP;
+    digitalWrite(LED_BUILTIN, shouldSlowMoveUp());
+    shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
+    state = AUTO_MOVING_UP;
+    return true;
   }
+  digitalWrite(LED_BUILTIN, 0);
   return state;
 }
 
@@ -359,7 +364,7 @@ bool MountStateMachine::transitionToFault() {
 
 void MountStateMachine::printInfo(Event event) {
   char info[144];
-  __attribute__((address(0x100))) const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%16s\r\nEvt:%17s";
+  __attribute__((address(0x100))) const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%15s\r\nEvt:%17s";
   Debug::home();
   snprintf(info, sizeof(info), fmt,
            mountController->isTvTurnedOn() ? "ON" : "OFF",

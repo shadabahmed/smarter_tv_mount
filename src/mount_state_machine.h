@@ -10,7 +10,8 @@
 #define MAX_TICKS_WITH_OVER_CURRENT 5
 #define ZERO_CURRENT 2
 #define MAX_TICKS_WITH_ZERO_CURRENT 5
-#define MIN_DIST_FROM_WALL 200
+#define MIN_DIST_FROM_WALL 150
+#define MIN_SOFT_DIST_FROM_WALL 400
 #define SETUP_WAIT 1000
 #define TICK 10
 #define TICKS_TO_WAIT_AFTER_FAULT 200 / TICK
@@ -18,9 +19,9 @@
 class MountStateMachine {
   public: enum Event { NONE, DOWN_PRESSED, UP_PRESSED, RIGHT_PRESSED,
         LEFT_PRESSED, FAULT_DETECTED, DOWN_REACHED, UP_REACHED,
-        RIGHT_REACHED, LEFT_REACHED, TV_TURNED_ON, TV_TURNED_OFF};
-  public: enum State { READY, MOVING_DOWN, MOVING_UP, MOVING_RIGHT,
-          MOVING_LEFT, AUTO_MOVING_DOWN, AUTO_MOVING_UP, FAULT };
+        RIGHT_REACHED, LEFT_REACHED, TV_TURNED_ON, TV_TURNED_OFF };
+  public: enum State { STOPPED, MOVING_DOWN, MOVING_UP, MOVING_RIGHT,
+        MOVING_LEFT, AUTO_MOVING_DOWN, AUTO_MOVING_UP, FAULT };
 
   public:
     MountStateMachine();
@@ -42,7 +43,7 @@ class MountStateMachine {
     Event getUpperLimitEvent();  
     Event getLowerLimitEvent();
     State getNextState(Event);
-    State getNextStateForReady(Event);
+    State getNextStateForStopped(Event);
     State getNextStateForMovingDown(Event);
     State getNextStateForMovingUp(Event);
     State getNextStateForMovingRight(Event);
@@ -50,7 +51,7 @@ class MountStateMachine {
     State getNextStateForAutoMovingUp(Event);
     State getNextStateForAutoMovingDown(Event);
     State getNextStateForFault(Event);
-    bool transitionToReady();
+    bool transitionToStopped();
     bool transitionToMovingDown();
     bool transitionToMovingUp();
     bool transitionToMovingRight();
@@ -60,15 +61,18 @@ class MountStateMachine {
     bool transitionToFault();
     bool canMoveDown() { return noFaultCheck(); };
     bool canMoveUp() { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL;}
+    bool shouldSlowMoveUp() { return mountController->getDistanceFromWall() < MIN_SOFT_DIST_FROM_WALL;}
     bool canMoveLeft()  { return noFaultCheck(); };
     bool canMoveRight()  { return noFaultCheck(); };
     bool noFaultCheck() { return state != FAULT; }
 
-    inline static char * EventStrings[] = { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
-                                   "LEFT_PRESSED","FAULT_DETECTED", "DOWN_REACHED","UP_REACHED",
-                                   "RIGHT_REACHED", "LEFT_REACHED", "TV_TURNED_ON", "TV_TURNED_OFF" };
-    inline static char * StateStrings[] = { "READY", "MOVING_DOWN", "MOVING_UP", "MOVING_RIGHT",
-                                   "MOVING_LEFT","AUTO_MOVING_DOWN", "AUTO_MOVING_UP","FAULT" };
+    inline static char * EventStrings[] =
+        { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
+          "LEFT_PRESSED","FAULT_DETECTED", "DOWN_REACHED","UP_REACHED",
+          "RIGHT_REACHED", "LEFT_REACHED", "TV_TURNED_ON", "TV_TURNED_OFF" };
+    inline static char * StateStrings[] =
+        { "STOPPED", "MOVING_DOWN", "MOVING_UP", "MOVING_RIGHT",
+          "MOVING_LEFT","AUTO_MOVING_DOWN", "AUTO_MOVING_UP","FAULT" };
 };
 
 #endif
