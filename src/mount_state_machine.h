@@ -27,7 +27,7 @@ class MountStateMachine {
     State getState() { return this->state; };
     Event getEvent();
     void setup();
-    bool updateState(Event);
+    bool transitionState(Event);
     static const char * getStateString(State state) { return StateStrings[state]; };
     static const char * getEventString(Event event) { return EventStrings[event]; };
     void printInfo(Event);
@@ -42,14 +42,28 @@ class MountStateMachine {
     Event getUpperLimitEvent();  
     Event getLowerLimitEvent();
     State getNextState(Event);
-    State updateReadyState(Event);
-    State updateMovingDownState(Event);
-    State updateMovingUpState(Event);
-    State updateMovingRightState(Event);
-    State updateMovingLeftState(Event);
-    State updateAutoMovingUpState(Event);
-    State updateAutoMovingDownState(Event);
-    State updateFaultState(Event);
+    State getNextStateForReady(Event);
+    State getNextStateForMovingDown(Event);
+    State getNextStateForMovingUp(Event);
+    State getNextStateForMovingRight(Event);
+    State getNextStateForMovingLeft(Event);
+    State getNextStateForAutoMovingUp(Event);
+    State getNextStateForAutoMovingDown(Event);
+    State getNextStateForFault(Event);
+    bool transitionToReady();
+    bool transitionToMovingDown();
+    bool transitionToMovingUp();
+    bool transitionToMovingRight();
+    bool transitionToMovingLeft();
+    bool transitionToAutoMovingUp();
+    bool transitionToAutoMovingDown();
+    bool transitionToFault();
+    bool canMoveDown() { return noFaultCheck(); };
+    bool canMoveUp() { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL;}
+    bool canMoveLeft()  { return noFaultCheck(); };
+    bool canMoveRight()  { return noFaultCheck(); };
+    bool noFaultCheck() { return state != FAULT; }
+
     inline static char * EventStrings[] = { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
                                    "LEFT_PRESSED","FAULT_DETECTED", "DOWN_REACHED","UP_REACHED",
                                    "RIGHT_REACHED", "LEFT_REACHED", "TV_TURNED_ON", "TV_TURNED_OFF" };

@@ -44,122 +44,6 @@ MountStateMachine::Event MountStateMachine::getEvent() {
   return getRemoteEvent();
 }
 
-bool MountStateMachine::updateState(Event event) {
-   State nextState = getNextState(event);
-   if (nextState == state) {
-     return false;
-   }
-   state = nextState;
-   return true;
-}
-
-MountStateMachine::State MountStateMachine::getNextState(Event event) {
-  switch (this->state) {
-    case READY: return updateReadyState(event);
-    case MOVING_DOWN: return updateMovingDownState(event);
-    case MOVING_UP: return updateMovingUpState(event);
-    case MOVING_RIGHT: return updateMovingRightState(event);
-    case MOVING_LEFT: return updateMovingLeftState(event);
-    case AUTO_MOVING_UP: return updateAutoMovingUpState(event);
-    case AUTO_MOVING_DOWN: return updateAutoMovingDownState(event);
-    case FAULT: return updateFaultState(event);
-    default: return state;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateReadyState(Event event) {
-  switch(event) {
-    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
-    case UP_PRESSED: mountController->moveUp(); return MOVING_UP;
-    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
-    case DOWN_PRESSED: mountController->moveDown(); return MOVING_DOWN;
-    case LEFT_PRESSED: mountController->moveLeft(); return MOVING_LEFT;
-    case RIGHT_PRESSED: mountController->moveRight(); return MOVING_RIGHT;
-  }
-  return READY;
-}
-
-MountStateMachine::State MountStateMachine::updateMovingDownState(Event event) {
-  switch(event) {
-    case NONE:
-    case DOWN_REACHED: mountController->stop(); return READY;
-    case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
-    default: return MOVING_DOWN;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateMovingUpState(Event event) {
-  switch(event) {
-    case NONE:
-    case UP_REACHED: mountController->stop(); return READY;
-    case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
-    default: return MOVING_UP;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateMovingRightState(Event event) {
-  switch(event) {
-    case NONE:
-    case RIGHT_REACHED: mountController->stop(); return READY;
-    case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
-    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
-    default: return MOVING_RIGHT;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateMovingLeftState(Event event) {
-  switch(event) {
-    case NONE:
-    case LEFT_REACHED: mountController->stop(); return READY;
-    case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
-    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
-    default: return MOVING_LEFT;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateAutoMovingDownState(Event event) {
-  switch(event) {
-    case DOWN_REACHED: mountController->stop(); return READY;
-    case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_OFF: mountController->moveUp(); return AUTO_MOVING_UP;
-    case UP_PRESSED:
-    case DOWN_PRESSED:
-    case LEFT_PRESSED:
-    case RIGHT_PRESSED: mountController->stop(); return READY;
-    case NONE:
-    default: return AUTO_MOVING_DOWN;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateAutoMovingUpState(Event event) {
-  switch(event) {
-    case UP_REACHED: mountController->stop(); return READY;
-    case FAULT_DETECTED: mountController->stop(); return FAULT;
-    case TV_TURNED_ON: mountController->moveDown(); return AUTO_MOVING_DOWN;
-    case UP_PRESSED:
-    case DOWN_PRESSED:
-    case LEFT_PRESSED:
-    case RIGHT_PRESSED: mountController->stop(); return READY;
-    case NONE:
-    default: return AUTO_MOVING_UP;
-  }
-}
-
-MountStateMachine::State MountStateMachine::updateFaultState(Event _) {
-  static int ticks = 0;
-  digitalWrite(LED_BUILTIN, 1);
-  if (ticks++ == TICKS_TO_WAIT_AFTER_FAULT) {
-    ticks = 0;
-    digitalWrite(LED_BUILTIN, 0);
-    return READY;
-  }
-  return FAULT;
-}
-
 MountStateMachine::Event MountStateMachine::getUpDownMotorEvent() {
   static int ticksWithOverCurrent = 0;
 
@@ -285,6 +169,193 @@ MountStateMachine::Event MountStateMachine::getRemoteEvent(){
   return NONE;
 }
 
+bool MountStateMachine::transitionState(Event event) {
+   State nextState = getNextState(event);
+   switch (nextState) {
+    case READY: return transitionToReady();
+    case MOVING_DOWN: return transitionToMovingDown();
+    case MOVING_UP: return transitionToMovingUp();
+    case MOVING_RIGHT: return transitionToMovingRight();
+    case MOVING_LEFT: return transitionToMovingLeft();
+    case AUTO_MOVING_UP: return transitionToAutoMovingUp();
+    case AUTO_MOVING_DOWN: return transitionToAutoMovingDown();
+    case FAULT: return transitionToFault();
+    default: return false;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextState(Event event) {
+  switch (this->state) {
+    case READY: return getNextStateForReady(event);
+    case MOVING_DOWN: return getNextStateForMovingDown(event);
+    case MOVING_UP: return getNextStateForMovingUp(event);
+    case MOVING_RIGHT: return getNextStateForMovingRight(event);
+    case MOVING_LEFT: return getNextStateForMovingLeft(event);
+    case AUTO_MOVING_UP: return getNextStateForAutoMovingUp(event);
+    case AUTO_MOVING_DOWN: return getNextStateForAutoMovingDown(event);
+    case FAULT: return getNextStateForFault(event);
+    default: return state;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForReady(Event event) {
+  switch(event) {
+    case TV_TURNED_OFF: return AUTO_MOVING_UP;
+    case UP_PRESSED: return MOVING_UP;
+    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
+    case DOWN_PRESSED: return MOVING_DOWN;
+    case LEFT_PRESSED: return MOVING_LEFT;
+    case RIGHT_PRESSED: return MOVING_RIGHT;
+    default: return READY;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForMovingDown(Event event) {
+  switch(event) {
+    case NONE:
+    case DOWN_REACHED: return READY;
+    case FAULT_DETECTED: return FAULT;
+    case TV_TURNED_OFF: return AUTO_MOVING_UP;
+    default: return MOVING_DOWN;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForMovingUp(Event event) {
+  switch(event) {
+    case NONE:
+    case UP_REACHED: return READY;
+    case FAULT_DETECTED: return FAULT;
+    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
+    default: return MOVING_UP;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForMovingRight(Event event) {
+  switch(event) {
+    case NONE:
+    case RIGHT_REACHED: return READY;
+    case FAULT_DETECTED: return FAULT;
+    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
+    case TV_TURNED_OFF: return AUTO_MOVING_UP;
+    default: return MOVING_RIGHT;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForMovingLeft(Event event) {
+  switch(event) {
+    case NONE:
+    case RIGHT_REACHED: return READY;
+    case FAULT_DETECTED: return FAULT;
+    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
+    case TV_TURNED_OFF: return AUTO_MOVING_UP;
+    default: return MOVING_LEFT;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForAutoMovingDown(Event event) {
+  switch(event) {
+    case DOWN_REACHED: return READY;
+    case FAULT_DETECTED: return FAULT;
+    case TV_TURNED_OFF: return AUTO_MOVING_UP;
+    case UP_PRESSED:
+    case DOWN_PRESSED:
+    case LEFT_PRESSED:
+    case RIGHT_PRESSED: return READY;
+    case NONE:
+    default: return AUTO_MOVING_DOWN;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForAutoMovingUp(Event event) {
+  switch(event) {
+    case DOWN_REACHED: return READY;
+    case FAULT_DETECTED: return FAULT;
+    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
+    case UP_PRESSED:
+    case DOWN_PRESSED:
+    case LEFT_PRESSED:
+    case RIGHT_PRESSED: return READY;
+    case NONE:
+    default: return AUTO_MOVING_UP;
+  }
+}
+
+MountStateMachine::State MountStateMachine::getNextStateForFault(Event) {
+  static int ticks = 0;
+  digitalWrite(LED_BUILTIN, 1);
+  if (ticks++ == TICKS_TO_WAIT_AFTER_FAULT) {
+    ticks = 0;
+    digitalWrite(LED_BUILTIN, 0);
+    return READY;
+  }
+  return FAULT;
+}
+
+bool MountStateMachine::transitionToReady() {
+  mountController->stop();
+  state = READY;
+  return true;
+}
+
+bool MountStateMachine::transitionToMovingDown() {
+  if (canMoveDown()) {
+    mountController->moveDown();
+    state = MOVING_DOWN;
+    return true;
+  }
+  return false;
+}
+
+bool MountStateMachine::transitionToMovingUp() {
+  if (canMoveUp()) {
+    mountController->moveUp();
+    state = MOVING_UP;
+    return true;
+  }
+  return false;
+}
+
+bool MountStateMachine::transitionToMovingRight() {
+  if (canMoveRight()) {
+    mountController->moveRight();
+    state = MOVING_RIGHT;
+    return true;
+  }
+  return false;
+}
+
+bool MountStateMachine::transitionToMovingLeft() {
+  if (canMoveLeft()) {
+    mountController->moveLeft();
+    state = MOVING_LEFT;
+    return true;
+  }
+  return false;
+}
+
+bool MountStateMachine::transitionToAutoMovingUp() {
+  if (canMoveUp()) {
+    mountController->moveDown();
+    return AUTO_MOVING_UP;
+  }
+  return state;
+}
+
+bool MountStateMachine::transitionToAutoMovingDown() {
+  if (canMoveDown()) {
+    mountController->moveDown();
+    state = AUTO_MOVING_DOWN;
+    return true;
+  }
+  return false;
+}
+
+bool MountStateMachine::transitionToFault() {
+  mountController->stop();
+  state = FAULT;
+  return true;
+}
+
 void MountStateMachine::printInfo(Event event) {
   char info[144];
   __attribute__((address(0x100))) const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%16s\r\nEvt:%17s";
@@ -298,5 +369,4 @@ void MountStateMachine::printInfo(Event event) {
            getEventString(event));
     Debug::println(info);
 }
-
 

@@ -17,6 +17,6 @@ void loop(){
   wdt_reset();
   MountStateMachine::Event event = mount.getEvent();
   mount.printInfo(event);
-  mount.updateState(event);
+  mount.transitionState(event);
   delay(TICK);
 }
