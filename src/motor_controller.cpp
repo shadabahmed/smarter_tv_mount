@@ -33,7 +33,7 @@ void MotorController::run(int dir, int dutyCycle) {
     digitalWrite(inA, 0);
     digitalWrite(inB, 1);
   }
-  analogWrite(pwm, ceil(dutyCycle * 2.55));
+  analogWrite(pwm, map(dutyCycle, 0, 100, 0, 255));
 }
 
 void MotorController::stop() {
