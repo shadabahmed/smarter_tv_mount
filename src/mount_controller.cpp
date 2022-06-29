@@ -6,7 +6,6 @@ MountController::MountController() {
   this->leftRightController = new MotorController(MOTOR2_SEL_A_PIN, MOTOR2_IN_A_PIN, MOTOR2_IN_B_PIN, MOTOR2_PWM_PIN, MOTOR2_CURRENT_SENSE_INPUT);
 #if defined(USE_DISTANCE_SENSOR)
   this->sensor = new Seeed_vl53l0x();
-  //this->lox = new Adafruit_VL53L0X();
 #endif
 }
 
