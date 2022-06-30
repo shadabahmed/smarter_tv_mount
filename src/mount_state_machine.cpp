@@ -309,12 +309,10 @@ bool MountStateMachine::transitionToMovingDown() {
 
 bool MountStateMachine::transitionToMovingUp() {
   if (canMoveUp()) {
-    digitalWrite(LED_BUILTIN, shouldSlowMoveUp());
     shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
     state = MOVING_UP;
     return true;
   }
-  digitalWrite(LED_BUILTIN, 0);
   return false;
 }
 
@@ -338,12 +336,10 @@ bool MountStateMachine::transitionToMovingLeft() {
 
 bool MountStateMachine::transitionToAutoMovingUp() {
   if (canMoveUp()) {
-    digitalWrite(LED_BUILTIN, shouldSlowMoveUp());
     shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
     state = AUTO_MOVING_UP;
     return true;
   }
-  digitalWrite(LED_BUILTIN, 0);
   return state;
 }
 
@@ -363,8 +359,8 @@ bool MountStateMachine::transitionToFault() {
 }
 
 void MountStateMachine::printInfo(Event event) {
-  char info[144];
-  __attribute__((address(0x100))) const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%15s\r\nEvt:%17s";
+  static char info[144];
+  static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%15s\r\nEvt:%17s";
   Debug::home();
   snprintf(info, sizeof(info), fmt,
            mountController->isTvTurnedOn() ? "ON" : "OFF",
