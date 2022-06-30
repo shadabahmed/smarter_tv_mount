@@ -221,71 +221,54 @@ MountStateMachine::State MountStateMachine::getNextStateForStopped(Event event) 
 
 MountStateMachine::State MountStateMachine::getNextStateForMovingDown(Event event) {
   switch(event) {
-    case NONE:
-    case DOWN_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
-    default: return MOVING_DOWN;
+    case DOWN_PRESSED: return MOVING_DOWN;
+    default: return STOPPED;
   }
 }
 
 MountStateMachine::State MountStateMachine::getNextStateForMovingUp(Event event) {
   switch(event) {
-    case NONE:
-    case UP_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
-    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
-    default: return MOVING_UP;
+    case UP_PRESSED: return MOVING_UP;
+    default: return STOPPED;
   }
 }
 
 MountStateMachine::State MountStateMachine::getNextStateForMovingRight(Event event) {
   switch(event) {
-    case NONE:
-    case RIGHT_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
-    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
-    case TV_TURNED_OFF: return AUTO_MOVING_UP;
-    default: return MOVING_RIGHT;
+    case RIGHT_PRESSED: return MOVING_RIGHT;
+    default: return STOPPED;
   }
 }
 
 MountStateMachine::State MountStateMachine::getNextStateForMovingLeft(Event event) {
   switch(event) {
-    case NONE:
-    case LEFT_REACHED: return STOPPED;
     case FAULT_DETECTED: return FAULT;
-    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
-    case TV_TURNED_OFF: return AUTO_MOVING_UP;
-    default: return MOVING_LEFT;
+    case LEFT_PRESSED: return MOVING_LEFT;
+    default: return STOPPED;
   }
 }
 
 MountStateMachine::State MountStateMachine::getNextStateForAutoMovingDown(Event event) {
   switch(event) {
-    case DOWN_REACHED: return STOPPED;
+    case NONE:
+    case TV_TURNED_ON: return AUTO_MOVING_DOWN;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_OFF: return AUTO_MOVING_UP;
-    case UP_PRESSED:
-    case DOWN_PRESSED:
-    case LEFT_PRESSED:
-    case RIGHT_PRESSED: return STOPPED;
-    case NONE:
-    default: return AUTO_MOVING_DOWN;
+    default: return STOPPED;
   }
 }
 
 MountStateMachine::State MountStateMachine::getNextStateForAutoMovingUp(Event event) {
   switch(event) {
-    case UP_REACHED: return STOPPED;
+    case NONE:
+    case TV_TURNED_OFF: return AUTO_MOVING_UP;
     case FAULT_DETECTED: return FAULT;
     case TV_TURNED_ON: return AUTO_MOVING_DOWN;
-    case UP_PRESSED:
-    case DOWN_PRESSED:
-    case LEFT_PRESSED:
-    case RIGHT_PRESSED: return STOPPED;
-    case NONE:
-    default: return AUTO_MOVING_UP;
+    default: return STOPPED;
   }
 }
 
@@ -308,56 +291,82 @@ bool MountStateMachine::transitionToStopped() {
 
 bool MountStateMachine::transitionToMovingDown() {
   if (canMoveDown()) {
+    // If we are just starting in this state, stop motor to reset motor current readings
+    if (state != MOVING_DOWN) {
+      mountController->stop();
+    }
     mountController->moveDown();
     state = MOVING_DOWN;
-    return true;
+  } else {
+    transitionToStopped();
   }
-  return false;
+  return state == MOVING_DOWN;
 }
 
 bool MountStateMachine::transitionToMovingUp() {
   if (canMoveUp()) {
+    // If we are just starting in this state, stop motor to reset motor current readings
+    if (state != MOVING_UP) {
+      mountController->stop();
+    }
     shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
     state = MOVING_UP;
-    return true;
+  } else {
+    transitionToStopped();
   }
-  return false;
+  return state == MOVING_UP;
 }
 
 bool MountStateMachine::transitionToMovingRight() {
   if (canMoveRight()) {
+    if (state != MOVING_RIGHT) {
+      mountController->stop();
+    }
     mountController->moveRight();
     state = MOVING_RIGHT;
-    return true;
+  } else {
+    transitionToStopped();
   }
-  return false;
+  return state == MOVING_RIGHT;
 }
 
 bool MountStateMachine::transitionToMovingLeft() {
   if (canMoveLeft()) {
+    if (state != MOVING_LEFT) {
+      mountController->stop();
+    }
     mountController->moveLeft();
     state = MOVING_LEFT;
-    return true;
+  } else {
+    transitionToStopped();
   }
-  return false;
+  return state == MOVING_LEFT;
 }
 
 bool MountStateMachine::transitionToAutoMovingUp() {
   if (canMoveUp()) {
+    if (state != AUTO_MOVING_UP) {
+      mountController->stop();
+    }
     shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
     state = AUTO_MOVING_UP;
-    return true;
+  } else {
+    transitionToStopped();
   }
-  return state;
+  return state == AUTO_MOVING_UP;
 }
 
 bool MountStateMachine::transitionToAutoMovingDown() {
   if (canMoveDown()) {
+    if (state != AUTO_MOVING_DOWN) {
+      mountController->stop();
+    }
     mountController->moveDown();
     state = AUTO_MOVING_DOWN;
-    return true;
+  } else {
+    transitionToStopped();
   }
-  return false;
+  return state == AUTO_MOVING_DOWN;
 }
 
 bool MountStateMachine::transitionToFault() {
