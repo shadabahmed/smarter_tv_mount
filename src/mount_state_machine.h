@@ -7,14 +7,15 @@
 #define MAX_DOWN_CURRENT 200
 #define MAX_LEFT_CURRENT 40
 #define MAX_RIGHT_CURRENT 40
-#define MAX_TICKS_WITH_OVER_CURRENT 5
+#define MAX_TICKS_WITH_OVER_CURRENT 4
 #define ZERO_CURRENT 2
-#define MAX_TICKS_WITH_ZERO_CURRENT 5
+#define MAX_TICKS_WITH_ZERO_CURRENT 4
 #define MIN_DIST_FROM_WALL 150
 #define MIN_SOFT_DIST_FROM_WALL 250
 #define SETUP_WAIT 2000
 #define TICK 5
 #define TICKS_TO_WAIT_AFTER_FAULT 200 / TICK
+#define TICKS_TO_WAIT_FOR_TV_ON 5
 
 class MountStateMachine {
   public: enum Event { NONE, DOWN_PRESSED, UP_PRESSED, RIGHT_PRESSED,
@@ -59,12 +60,12 @@ class MountStateMachine {
     bool transitionToAutoMovingUp();
     bool transitionToAutoMovingDown();
     bool transitionToFault();
-    bool canMoveDown() { return noFaultCheck(); };
-    bool canMoveUp() { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL;}
+    bool canMoveDown() { return true; };
+    bool canMoveUp() { return wallDistanceCheck(); }
     bool shouldSlowMoveUp() { return mountController->getDistanceFromWall() < MIN_SOFT_DIST_FROM_WALL;}
-    bool canMoveLeft()  { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL; };
-    bool canMoveRight()  { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL; };
-    bool noFaultCheck() { return state != FAULT; }
+    bool canMoveLeft()  { return wallDistanceCheck(); }
+    bool canMoveRight()  { return wallDistanceCheck(); }
+    bool wallDistanceCheck() { return mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL; }
 
     inline static char * EventStrings[] =
         { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
