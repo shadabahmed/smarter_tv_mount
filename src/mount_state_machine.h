@@ -11,9 +11,9 @@
 #define ZERO_CURRENT 2
 #define MAX_TICKS_WITH_ZERO_CURRENT 5
 #define MIN_DIST_FROM_WALL 150
-#define MIN_SOFT_DIST_FROM_WALL 400
-#define SETUP_WAIT 1000
-#define TICK 10
+#define MIN_SOFT_DIST_FROM_WALL 250
+#define SETUP_WAIT 2000
+#define TICK 5
 #define TICKS_TO_WAIT_AFTER_FAULT 200 / TICK
 
 class MountStateMachine {
@@ -62,8 +62,8 @@ class MountStateMachine {
     bool canMoveDown() { return noFaultCheck(); };
     bool canMoveUp() { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL;}
     bool shouldSlowMoveUp() { return mountController->getDistanceFromWall() < MIN_SOFT_DIST_FROM_WALL;}
-    bool canMoveLeft()  { return noFaultCheck(); };
-    bool canMoveRight()  { return noFaultCheck(); };
+    bool canMoveLeft()  { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL; };
+    bool canMoveRight()  { return noFaultCheck() && mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL; };
     bool noFaultCheck() { return state != FAULT; }
 
     inline static char * EventStrings[] =
