@@ -151,7 +151,7 @@ MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
 
   int motorCurrent = mountController->getUpDownMotorCurrent();
   if (state == AUTO_MOVING_DOWN || state == MOVING_DOWN) {
-    if (motorCurrent <= ZERO_CURRENT) {
+    if (motorCurrent <= ZERO_CURRENT_VALUE) {
       ticksWithZeroCurrent++;
     } else if(ticksWithZeroCurrent > 0) {
       ticksWithZeroCurrent--;

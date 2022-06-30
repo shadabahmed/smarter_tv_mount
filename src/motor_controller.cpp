@@ -11,7 +11,7 @@ MotorController::MotorController(int selA, int inA, int inB, int pwm, int curren
   resetCurrentReadings();
 }
 
-void MotorController::setup() {
+void MotorController::setup() const {
   pinMode(selA, OUTPUT);
   pinMode(inA, OUTPUT);
   pinMode(inB, OUTPUT);
@@ -23,7 +23,7 @@ void MotorController::setup() {
   digitalWrite(pwm, 0);
 }
 
-void MotorController::run(int dir, int dutyCycle) {
+void MotorController::run(int dir, int dutyCycle) const {
   if (dir) {
     digitalWrite(selA, 1);
     digitalWrite(inA, 1);

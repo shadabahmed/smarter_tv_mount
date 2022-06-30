@@ -8,8 +8,8 @@ class MotorController
 {
   public:
     MotorController(int, int, int, int, int);
-    void setup() ;
-    void run(int, int = 80);
+    void setup() const ;
+    void run(int, int = 80) const;
     void stop();
     int getCurrent();
   private:

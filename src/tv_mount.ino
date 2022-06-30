@@ -17,6 +17,7 @@ void setup(){
   Debug::println("Finished init !");
   delay(SETUP_WAIT);
   Debug::clear();
+  // Enable watch dog timer with 2s interval
   wdt_enable(WDTO_2S);
 }
 
