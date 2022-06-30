@@ -112,12 +112,20 @@ MountStateMachine::Event MountStateMachine::getLeftRightMotorEvent() {
 
 MountStateMachine::Event MountStateMachine::getTvEvent() {
   static bool tvOn = mountController->isTvTurnedOn();
-  bool prevTvOn = tvOn;
+  static bool prevTvOn = tvOn;
+  static int ticks = 0;
   tvOn = mountController->isTvTurnedOn();
-  if (!prevTvOn && tvOn){
-    return TV_TURNED_ON;
-  } else if(prevTvOn && !tvOn) {
-    return TV_TURNED_OFF;
+  // DEBOUNCE TV change event to prevent trigger on sudden pulses
+  if (prevTvOn != tvOn) {
+    ticks++;
+    if (ticks == TICKS_TO_WAIT_FOR_TV_ON) {
+      Event event = tvOn ? TV_TURNED_ON : TV_TURNED_OFF;
+      prevTvOn = tvOn;
+      ticks = 0;
+      return event;
+    }
+  } else {
+    ticks = 0;
   }
   return NONE;
 }
