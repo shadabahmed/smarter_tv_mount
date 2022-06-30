@@ -9,7 +9,7 @@
 
 #ifdef USE_DISTANCE_SENSOR
 #include <Wire.h>
-#include <Seeed_vl53l0x.h>
+#include <Adafruit_VL53L0X.h>
 #endif
 
 // define TV INPUTS
@@ -26,7 +26,7 @@
 #define MOTOR1_IN_B_PIN 4
 #define MOTOR1_CURRENT_SENSE_INPUT A1
 #define MOTOR1_DUTY_CYCLE 100
-#define MOTOR1_SLOW_DUTY_CYCLE 50
+#define MOTOR1_SLOW_DUTY_CYCLE 40
 #define UP_DIR 1
 #define DOWN_DIR 0
 
@@ -58,7 +58,7 @@ class MountController {
     MotorController *upDownController;
     MotorController *leftRightController;
 #ifdef USE_DISTANCE_SENSOR
-    Seeed_vl53l0x* sensor;
+    Adafruit_VL53L0X* sensor;
 #endif
 };
 
