@@ -11,7 +11,7 @@ MotorController::MotorController(int selA, int inA, int inB, int pwm, int curren
   resetCurrentReadings();
 }
 
-void MotorController::setup() const {
+void MotorController::begin() const {
   pinMode(selA, OUTPUT);
   pinMode(inA, OUTPUT);
   pinMode(inB, OUTPUT);

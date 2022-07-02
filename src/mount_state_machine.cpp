@@ -2,21 +2,23 @@
 #include "mount_state_machine.h"
 
 MountStateMachine::MountStateMachine() {
-  this->mountController = new MountController();
-  this->remote = new Remote();
+  this->mountController = new MountController;
+  this->remote = new Remote;
+  this->sensors = new DistanceSensors;
   this->state = STOPPED;
 }
 
-void MountStateMachine::setup() {
+void MountStateMachine::begin() {
   Debug::println("Init state machine...");
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(TV_PIN, INPUT_PULLUP);
-  mountController->setup();
-  Debug::println("Init remote...");
-  remote->setup();
+  mountController->begin();
+  remote->begin();
+  sensors->setup();
 }
 
 MountStateMachine::Event MountStateMachine::getEvent() {
+  sensors->refresh();
   Event upDownMotorEvent = getUpDownMotorEvent();
   if(upDownMotorEvent != NONE) {
     return upDownMotorEvent;
@@ -132,7 +134,7 @@ MountStateMachine::Event MountStateMachine::getTvEvent() {
 
 MountStateMachine::Event MountStateMachine::getUpperLimitEvent(){
   static Event prevEvent = NONE;
-  unsigned int distanceFromWall = mountController->getDistanceFromWall(true);
+  unsigned int distanceFromWall = sensors->getMinDistance();
   if (prevEvent != UP_REACHED && distanceFromWall <= MIN_DIST_FROM_WALL){
     return prevEvent = UP_REACHED;
   } else if (distanceFromWall > MIN_DIST_FROM_WALL) {
@@ -377,13 +379,14 @@ bool MountStateMachine::transitionToFault() {
 
 void MountStateMachine::printInfo(Event event) {
   static char info[144];
-  static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nState:%15s\r\nEvt:%17s";
+  static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nDist Diff:%11d\r\nState:%15s\r\nEvt:%17s";
   Debug::home();
   snprintf(info, sizeof(info), fmt,
            mountController->isTvTurnedOn() ? "ON" : "OFF",
            mountController->getUpDownMotorCurrent(),
            mountController->getLeftRightMotorCurrent(),
-           mountController->getDistanceFromWall(),
+           sensors->getMinDistance(),
+           sensors->getDistDiff(),
            getStateString(getState()),
            getEventString(event));
     Debug::println(info);

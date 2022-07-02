@@ -16,9 +16,7 @@
 
 class Debug {
 public:
-  DebugClass() {
-  };
-  static void setup() {
+  static void begin() {
     Serial.begin(SERIAL_BAUD);
 #ifdef OLED_DEBUG
     Wire.begin();

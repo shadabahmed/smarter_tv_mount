@@ -3,10 +3,12 @@
 
 #include "mount_controller.h"
 #include "remote.h"
+#include "distance_sensors.h"
+
 #define MAX_UP_CURRENT 375
 #define MAX_DOWN_CURRENT 175
-#define MAX_LEFT_CURRENT 40
-#define MAX_RIGHT_CURRENT 40
+#define MAX_LEFT_CURRENT 200
+#define MAX_RIGHT_CURRENT 200
 #define MAX_TICKS_WITH_OVER_CURRENT 4
 #define ZERO_CURRENT_VALUE 2
 #define MAX_TICKS_WITH_ZERO_CURRENT 2
@@ -28,7 +30,7 @@ class MountStateMachine {
     MountStateMachine();
     State getState() { return this->state; };
     Event getEvent();
-    void setup();
+    void begin();
     bool transitionState(Event);
     static const char * getStateString(State state) { return StateStrings[state]; };
     static const char * getEventString(Event event) { return EventStrings[event]; };
@@ -36,6 +38,7 @@ class MountStateMachine {
   private:
     MountController* mountController;
     Remote* remote;
+    DistanceSensors* sensors;
     State state;
     Event getTvEvent();
     Event getRemoteEvent();    
@@ -62,10 +65,10 @@ class MountStateMachine {
     bool transitionToFault();
     bool canMoveDown() { return true; };
     bool canMoveUp() { return wallDistanceCheck(); }
-    bool shouldSlowMoveUp() { return mountController->getDistanceFromWall() < MIN_SOFT_DIST_FROM_WALL;}
+    bool shouldSlowMoveUp() { return sensors->getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
     bool canMoveLeft()  { return wallDistanceCheck(); }
     bool canMoveRight()  { return wallDistanceCheck(); }
-    bool wallDistanceCheck() { return mountController->getDistanceFromWall() > MIN_DIST_FROM_WALL; }
+    bool wallDistanceCheck() { return sensors->getMinDistance() > MIN_DIST_FROM_WALL; }
 
     inline static char * EventStrings[] =
         { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",

@@ -5,19 +5,9 @@
 
 #define MOUNT_CONTROLLER_H_
 
-#define USE_DISTANCE_SENSOR
-
-#ifdef USE_DISTANCE_SENSOR
-#include <Wire.h>
-#include <Adafruit_VL53L0X.h>
-#endif
-
 // define TV INPUTS
 #define TV_PIN 21
 #define TV_ON 0
-
-// Distance sensor config
-#define DISTANCE_AVG_WINDOW_SIZE 10
 
 // MOTOR 1 CONFIG - UP DOWN ARM
 #define MOTOR1_PWM_PIN 5
@@ -36,14 +26,14 @@
 #define MOTOR2_SEL_A_PIN 7
 #define MOTOR2_IN_B_PIN 9
 #define MOTOR2_CURRENT_SENSE_INPUT A0
-#define MOTOR2_DUTY_CYCLE 50
+#define MOTOR2_DUTY_CYCLE 90
 #define LEFT_DIR 0
 #define RIGHT_DIR 1
 
 class MountController {
   public:
     MountController();
-    void setup();
+    void begin();
     void moveUp() { upDownController->run(UP_DIR, MOTOR1_DUTY_CYCLE); };
     void moveUpSlow() { upDownController->run(UP_DIR, MOTOR1_SLOW_DUTY_CYCLE); };
     void moveDown() { upDownController->run(DOWN_DIR, MOTOR1_DUTY_CYCLE); };
@@ -53,13 +43,9 @@ class MountController {
     int getLeftRightMotorCurrent() { return leftRightController->getCurrent(); };
     bool isTvTurnedOn() { return digitalRead(TV_PIN) == TV_ON; };
     void stop() { upDownController->stop(); leftRightController->stop(); };
-    unsigned int getDistanceFromWall(bool = false);
   private:
     MotorController *upDownController;
     MotorController *leftRightController;
-#ifdef USE_DISTANCE_SENSOR
-    Adafruit_VL53L0X* sensor;
-#endif
 };
 
 #endif

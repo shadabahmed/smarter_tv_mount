@@ -4,50 +4,12 @@
 MountController::MountController() {
   this->upDownController = new MotorController(MOTOR1_SEL_A_PIN, MOTOR1_IN_A_PIN, MOTOR1_IN_B_PIN, MOTOR1_PWM_PIN, MOTOR1_CURRENT_SENSE_INPUT);
   this->leftRightController = new MotorController(MOTOR2_SEL_A_PIN, MOTOR2_IN_A_PIN, MOTOR2_IN_B_PIN, MOTOR2_PWM_PIN, MOTOR2_CURRENT_SENSE_INPUT);
-#if defined(USE_DISTANCE_SENSOR)
-  this->sensor = new Adafruit_VL53L0X;
-#endif
 }
 
-void MountController::setup() {
+void MountController::begin() {
   Debug::println("Init motor 1...");
-  upDownController->setup();
+  upDownController->begin();
   Debug::println("Init motor 2...");
-  leftRightController->setup();
-#if defined(USE_DISTANCE_SENSOR)
-  Debug::println("Init sensor ");
-  if (!sensor->begin()) {
-    Debug::println("Failed Init sensor ");
-    while (1);
-  }
-#endif
+  leftRightController->begin();
 }
-
-unsigned int MountController::getDistanceFromWall(bool refresh) {
-#if defined(USE_DISTANCE_SENSOR)
-  static int index = 0;
-  static unsigned int readings[DISTANCE_AVG_WINDOW_SIZE];
-  if (refresh) {
-    VL53L0X_RangingMeasurementData_t measure;
-    sensor->rangingTest(&measure, false);
-    if(measure.RangeStatus != 4) {
-      readings[index++] = measure.RangeMilliMeter >= 2000 ? 2000 : measure.RangeMilliMeter;
-      index = index == DISTANCE_AVG_WINDOW_SIZE ? 0 : index;
-    }
-  }
-  unsigned int sum = 0;
-  for(int i = 0; i < DISTANCE_AVG_WINDOW_SIZE; i++) {
-    // If there is no reading at this slot, put in maximum value to read distance as really far. Not to trigger up reached immediately
-    if (readings[i] == 0) {
-      readings[i] = 2000;
-    }
-    sum += readings[i];
-  }
-
-  return sum / DISTANCE_AVG_WINDOW_SIZE;
-#else
-  return 2000;
-#endif
-}
-
 

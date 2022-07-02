@@ -11,9 +11,9 @@ void setup(){
   // Needed for high frequency PWM at Pin 5. Sets prescalar for TCA0 to clock freq
   TCA0.SPLIT.CTRLA = TCB_ENABLE_bm;
 
-  Debug::setup();
+  Debug::begin();
   Debug::println("Init...");
-  mount.setup();
+  mount.begin();
   Debug::println("Finished init !");
   delay(SETUP_WAIT);
   Debug::clear();

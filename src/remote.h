@@ -1,5 +1,6 @@
 #ifndef REMOTE_H_
 #include "Arduino.h"
+#include "debug.h"
 #define REMOTE_H_
 
 #define BUTTON_D0 10
@@ -10,7 +11,8 @@
 class Remote {
   public:
   Remote() = default;
-  void setup() {
+  void begin() {
+    Debug::println("Init remote...");
     pinMode(BUTTON_D0, INPUT);
     pinMode(BUTTON_D1, INPUT);
     pinMode(BUTTON_D2, INPUT);
