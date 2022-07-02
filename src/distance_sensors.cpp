@@ -3,15 +3,15 @@
 #include "distance_sensors.h"
 
 DistanceSensors::DistanceSensors() {
-  for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
 #ifdef USE_DISTANCE_SENSORS
+  for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     sensors[i] = new Adafruit_VL53L0X;
     pinMode(DISTANCE_SENSORS_CONTROL_PINS[i], OUTPUT);
-#endif
     for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
       readings[i][j] = MAX_DISTANCE;
     }
   }
+#endif
 }
 
 void DistanceSensors::begin() {

@@ -21,9 +21,9 @@ class DistanceSensors {
   int getMinDistance();
   int getDistDiff();
   private:
-  int readings[DISTANCE_SENSORS_COUNT][DISTANCE_AVG_WINDOW_SIZE];
 #ifdef USE_DISTANCE_SENSORS
   Adafruit_VL53L0X* sensors[DISTANCE_SENSORS_COUNT];
+  int readings[DISTANCE_SENSORS_COUNT][DISTANCE_AVG_WINDOW_SIZE];
 #endif
 };
 
