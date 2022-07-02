@@ -14,39 +14,33 @@ void MountStateMachine::begin() {
   pinMode(TV_PIN, INPUT_PULLUP);
   mountController->begin();
   remote->begin();
-  sensors->setup();
+  sensors->begin();
 }
 
 MountStateMachine::Event MountStateMachine::getEvent() {
   sensors->refresh();
-  Event upDownMotorEvent = getUpDownMotorEvent();
-  if(upDownMotorEvent != NONE) {
-    return upDownMotorEvent;
+  Event events[] = {
+      getUpDownMotorFaultEvent(),
+      getLeftRightMotorFaultEvent(),
+      getUpperLimitEvent(),
+      getLowerLimitEvent(),
+      getLeftLimitEvent(),
+      getRightLimitEvent(),
+      getTvEvent(),
+      getRemoteEvent()
+  };
+  // Find first non-NONE event or return the last one (remote-event)
+  unsigned int matchingIdx = sizeof(events) - 1;
+  for(unsigned int i = 0; i < sizeof(events) - 1; i++) {
+    if (events[i] != NONE) {
+      matchingIdx = i;
+      break;
+    }
   }
-  
-  Event leftRightMotorEvent = getLeftRightMotorEvent(); 
-  if(leftRightMotorEvent != NONE) {
-    return leftRightMotorEvent;
-  }
-
-  Event upperLimitEvent = getUpperLimitEvent();
-  if(upperLimitEvent != NONE) {
-    return upperLimitEvent;
-  }
-  
-  Event lowerLimitEvent = getLowerLimitEvent();
-  if(lowerLimitEvent != NONE) {
-    return lowerLimitEvent;
-  }
-  
-  Event tvEvent = getTvEvent();
-  if(tvEvent != NONE){
-    return tvEvent;    
-  }
-  return getRemoteEvent();
+  return events[matchingIdx];
 }
 
-MountStateMachine::Event MountStateMachine::getUpDownMotorEvent() {
+MountStateMachine::Event MountStateMachine::getUpDownMotorFaultEvent() {
   static int ticksWithOverCurrent = 0;
 
   if (state == STOPPED) {
@@ -79,7 +73,7 @@ MountStateMachine::Event MountStateMachine::getUpDownMotorEvent() {
   return NONE;
 }
 
-MountStateMachine::Event MountStateMachine::getLeftRightMotorEvent() {
+MountStateMachine::Event MountStateMachine::getLeftRightMotorFaultEvent() {
   static int ticksWithOverCurrent = 0;
 
   if (state == STOPPED) {
@@ -133,17 +127,29 @@ MountStateMachine::Event MountStateMachine::getTvEvent() {
 }
 
 MountStateMachine::Event MountStateMachine::getUpperLimitEvent(){
-  static Event prevEvent = NONE;
-  unsigned int distanceFromWall = sensors->getMinDistance();
-  if (prevEvent != UP_REACHED && distanceFromWall <= MIN_DIST_FROM_WALL){
-    return prevEvent = UP_REACHED;
-  } else if (distanceFromWall > MIN_DIST_FROM_WALL) {
-    return prevEvent = NONE;
-  }
-  return NONE;
+  static bool prevMovementAllowed = canMoveUp();
+  Event event = !canMoveUp() && prevMovementAllowed ? TOP_REACHED : NONE;
+  prevMovementAllowed = canMoveUp();
+  return event;
+}
+
+MountStateMachine::Event MountStateMachine::getRightLimitEvent() {
+  static int prevMovementAllowed = canMoveRight();
+  Event event = !canMoveRight() && prevMovementAllowed ? RIGHT_REACHED : NONE;
+  prevMovementAllowed = canMoveRight();
+  return event;
+}
+
+MountStateMachine::Event MountStateMachine::getLeftLimitEvent() {
+  static int prevMovementAllowed = canMoveLeft();
+  Event event = !canMoveLeft() && prevMovementAllowed ? LEFT_REACHED : NONE;
+  prevMovementAllowed = canMoveLeft();
+  return event;
 }
 
 MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
+  // The motor has automatic cut off when it reached the bottom.
+  // We use this to check if it has reached the bottom by checking zero current while it is moving down
   static int ticksWithZeroCurrent = 0;
 
   if (state == STOPPED) {
@@ -162,7 +168,7 @@ MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
 
   if (ticksWithZeroCurrent == MAX_TICKS_WITH_ZERO_CURRENT) {
     ticksWithZeroCurrent = 0;
-    return DOWN_REACHED;
+    return BOTTOM_REACHED;
   }
 
   return NONE;
@@ -391,4 +397,3 @@ void MountStateMachine::printInfo(Event event) {
            getEventString(event));
     Debug::println(info);
 }
-

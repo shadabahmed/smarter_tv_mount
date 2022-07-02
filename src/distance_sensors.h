@@ -1,7 +1,3 @@
-//
-// Created by Shadab Ahmed on 7/1/22.
-//
-
 #ifndef DISTANCE_SENSORS_H
 #define DISTANCE_SENSORS_H
 #define USE_DISTANCE_SENSORS

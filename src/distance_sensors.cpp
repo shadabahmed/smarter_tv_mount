@@ -1,6 +1,3 @@
-//
-// Created by Shadab Ahmed on 7/1/22.
-//
 #include "Arduino.h"
 #include "debug.h"
 #include "distance_sensors.h"
@@ -19,19 +16,19 @@ DistanceSensors::DistanceSensors() {
 
 void DistanceSensors::begin() {
 #ifdef USE_DISTANCE_SENSORS
-  // Set all sensors XSHUT to low
+  // Set all sensors XSHUT pin to low
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 0);
   }
   delay(10);
 
-  // Set all sensors XSHUT to high
+  // Set all sensors XSHUT pin to high
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
   }
   delay(10);
 
-  // Set all sensors XSHUT to low except first
+  // Set all sensors XSHUT pin to low except first
   for(int i = 1; i < DISTANCE_SENSORS_COUNT; i++) {
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 0);
   }

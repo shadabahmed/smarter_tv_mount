@@ -18,10 +18,12 @@
 #define TICK 5
 #define TICKS_TO_WAIT_AFTER_FAULT 200 / TICK
 #define TICKS_TO_WAIT_FOR_TV_ON 3
+#define MAX_SENSOR_DIFF 40
+#define MIN_SENSOR_DIFF -40
 
 class MountStateMachine {
   public: enum Event { NONE, DOWN_PRESSED, UP_PRESSED, RIGHT_PRESSED,
-        LEFT_PRESSED, FAULT_DETECTED, DOWN_REACHED, UP_REACHED,
+        LEFT_PRESSED, FAULT_DETECTED, BOTTOM_REACHED, TOP_REACHED,
         RIGHT_REACHED, LEFT_REACHED, TV_TURNED_ON, TV_TURNED_OFF };
   public: enum State { STOPPED, MOVING_DOWN, MOVING_UP, MOVING_RIGHT,
         MOVING_LEFT, AUTO_MOVING_DOWN, AUTO_MOVING_UP, FAULT };
@@ -42,10 +44,12 @@ class MountStateMachine {
     State state;
     Event getTvEvent();
     Event getRemoteEvent();    
-    Event getUpDownMotorEvent();
-    Event getLeftRightMotorEvent();
+    Event getUpDownMotorFaultEvent();
+    Event getLeftRightMotorFaultEvent();
     Event getUpperLimitEvent();  
     Event getLowerLimitEvent();
+    Event getRightLimitEvent();
+    Event getLeftLimitEvent();
     State getNextState(Event);
     State getNextStateForStopped(Event);
     State getNextStateForMovingDown(Event);
@@ -63,16 +67,16 @@ class MountStateMachine {
     bool transitionToAutoMovingUp();
     bool transitionToAutoMovingDown();
     bool transitionToFault();
-    bool canMoveDown() { return true; };
+    bool canMoveDown() { return sensors->getMinDistance() < MAX_DISTANCE; };
     bool canMoveUp() { return wallDistanceCheck(); }
     bool shouldSlowMoveUp() { return sensors->getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
-    bool canMoveLeft()  { return wallDistanceCheck(); }
-    bool canMoveRight()  { return wallDistanceCheck(); }
+    bool canMoveLeft()  { return wallDistanceCheck() && sensors->getDistDiff() > MIN_SENSOR_DIFF; }
+    bool canMoveRight()  { return wallDistanceCheck() && sensors->getDistDiff() < MAX_SENSOR_DIFF; }
     bool wallDistanceCheck() { return sensors->getMinDistance() > MIN_DIST_FROM_WALL; }
 
     inline static char * EventStrings[] =
         { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
-          "LEFT_PRESSED","FAULT_DETECTED", "DOWN_REACHED","UP_REACHED",
+          "LEFT_PRESSED","FAULT_DETECTED", "BOTTOM_REACHED","TOP_REACHED",
           "RIGHT_REACHED", "LEFT_REACHED", "TV_TURNED_ON", "TV_TURNED_OFF" };
     inline static char * StateStrings[] =
         { "STOPPED", "MOVING_DOWN", "MOVING_UP", "MOVING_RIGHT",

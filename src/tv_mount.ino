@@ -8,7 +8,7 @@
 
 MountStateMachine mount;
 void setup(){
-  // Needed for high frequency PWM at Pin 5. Sets prescalar for TCA0 to clock freq
+  // Needed for high frequency PWM at Pin 5. Sets pre-scalar for TCA0 to clock freq
   TCA0.SPLIT.CTRLA = TCB_ENABLE_bm;
 
   Debug::begin();
