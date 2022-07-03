@@ -6,6 +6,7 @@ MountStateMachine::MountStateMachine() {
   this->remote = new Remote;
   this->sensors = new DistanceSensors;
   this->state = STOPPED;
+  this->faultClearTimestamp = 0;
 }
 
 void MountStateMachine::begin() {
@@ -15,6 +16,17 @@ void MountStateMachine::begin() {
   mountController->begin();
   remote->begin();
   sensors->begin();
+}
+
+void MountStateMachine::refresh() {
+  sensors->refresh();
+}
+
+void MountStateMachine::update() {
+  refresh();
+  Event event = getEvent();
+  printInfo(event);
+  transitionState(event);
 }
 
 MountStateMachine::Event MountStateMachine::getEvent() {
@@ -41,87 +53,69 @@ MountStateMachine::Event MountStateMachine::getEvent() {
 }
 
 MountStateMachine::Event MountStateMachine::getUpDownMotorFaultEvent() {
-  static int ticksWithOverCurrent = 0;
+  static unsigned long firstOverCurrentTimestamp = 0;
 
-  if (state == STOPPED) {
-    ticksWithOverCurrent = 0;
+  if (state != MOVING_UP && state != AUTO_MOVING_UP && state != MOVING_DOWN && state != AUTO_MOVING_DOWN) {
+    firstOverCurrentTimestamp = 0;
     return NONE;
   }
 
   int motorCurrent = mountController->getUpDownMotorCurrent();
-  if (state == MOVING_UP || state == AUTO_MOVING_UP) {
-    if ( motorCurrent >= MAX_UP_CURRENT) {
-      ticksWithOverCurrent++;
-    } else if(ticksWithOverCurrent > 0) {
-      ticksWithOverCurrent--;
-    }
-  }
+  int maxCurrent = (state == MOVING_UP || state == AUTO_MOVING_UP) ? MAX_UP_CURRENT : MAX_DOWN_CURRENT;
 
-  if (state == MOVING_DOWN || state == AUTO_MOVING_DOWN) {
-    if (motorCurrent >= MAX_DOWN_CURRENT) {
-      ticksWithOverCurrent++;
-    } else if(ticksWithOverCurrent > 0) {
-      ticksWithOverCurrent--;
+  if (motorCurrent >= maxCurrent) {
+    if (firstOverCurrentTimestamp == 0) {
+      firstOverCurrentTimestamp = millis();
+      return NONE;
+    } else if(millis() - firstOverCurrentTimestamp > MAX_DURATION_WITH_OVER_CURRENT) {
+      firstOverCurrentTimestamp = 0;
+      return FAULT_DETECTED;
     }
-  }
-
-  if (ticksWithOverCurrent == MAX_TICKS_WITH_OVER_CURRENT) {
-    ticksWithOverCurrent = 0;
-    return FAULT_DETECTED;
   }
 
   return NONE;
 }
 
 MountStateMachine::Event MountStateMachine::getLeftRightMotorFaultEvent() {
-  static int ticksWithOverCurrent = 0;
+  static unsigned long firstOverCurrentTimestamp = 0;
 
-  if (state == STOPPED) {
-    ticksWithOverCurrent = 0;
+  if (state != MOVING_RIGHT && state != MOVING_LEFT) {
+    firstOverCurrentTimestamp = 0;
     return NONE;
   }
 
   int motorCurrent = mountController->getLeftRightMotorCurrent();
-  if (state == MOVING_LEFT) {
-    if ( motorCurrent >= MAX_LEFT_CURRENT) {
-      ticksWithOverCurrent++;
-    } else if(ticksWithOverCurrent > 0) {
-      ticksWithOverCurrent--;
-    }
-  }
+  int maxCurrent = state == MOVING_RIGHT ? MAX_RIGHT_CURRENT : MAX_LEFT_CURRENT;
 
-  if (state == MOVING_RIGHT) {
-    if (motorCurrent >= MAX_RIGHT_CURRENT) {
-      ticksWithOverCurrent++;
-    } else if(ticksWithOverCurrent > 0) {
-      ticksWithOverCurrent--;
+  if (motorCurrent >= maxCurrent) {
+    if (firstOverCurrentTimestamp == 0) {
+      firstOverCurrentTimestamp = millis();
+      return NONE;
+    } else if(millis() - firstOverCurrentTimestamp > MAX_DURATION_WITH_OVER_CURRENT) {
+      firstOverCurrentTimestamp = 0;
+      return FAULT_DETECTED;
     }
-  }
-
-  if (ticksWithOverCurrent == MAX_TICKS_WITH_OVER_CURRENT) {
-    ticksWithOverCurrent = 0;
-    return FAULT_DETECTED;
   }
 
   return NONE;
 }
 
 MountStateMachine::Event MountStateMachine::getTvEvent() {
-  static bool tvOn = mountController->isTvTurnedOn();
-  static bool prevTvOn = tvOn;
-  static int ticks = 0;
-  tvOn = mountController->isTvTurnedOn();
+  static bool prevTvOn = mountController->isTvTurnedOn();
+  static unsigned long lastChangeTimestamp = 0;
+  bool tvOn = mountController->isTvTurnedOn();
   // DEBOUNCE TV change event to prevent trigger on sudden pulses
   if (prevTvOn != tvOn) {
-    ticks++;
-    if (ticks == TICKS_TO_WAIT_FOR_TV_ON) {
+    if(lastChangeTimestamp == 0) {
+      lastChangeTimestamp = millis();
+    } else if (millis() - lastChangeTimestamp > TV_CHANGE_DEBOUNCE_DURATION) {
       Event event = tvOn ? TV_TURNED_ON : TV_TURNED_OFF;
       prevTvOn = tvOn;
-      ticks = 0;
+      lastChangeTimestamp = 0;
       return event;
     }
   } else {
-    ticks = 0;
+    lastChangeTimestamp = 0;
   }
   return NONE;
 }
@@ -150,25 +144,21 @@ MountStateMachine::Event MountStateMachine::getLeftLimitEvent() {
 MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
   // The motor has automatic cut off when it reached the bottom.
   // We use this to check if it has reached the bottom by checking zero current while it is moving down
-  static int ticksWithZeroCurrent = 0;
+  static unsigned long firstTimestampWithZeroCurrent = 0;
 
-  if (state == STOPPED) {
-    ticksWithZeroCurrent = 0;
+  if (state != MOVING_DOWN && state != AUTO_MOVING_DOWN) {
+    firstTimestampWithZeroCurrent = 0;
     return NONE;
   }
 
   int motorCurrent = mountController->getUpDownMotorCurrent();
-  if (state == AUTO_MOVING_DOWN || state == MOVING_DOWN) {
-    if (motorCurrent <= ZERO_CURRENT_VALUE) {
-      ticksWithZeroCurrent++;
-    } else if(ticksWithZeroCurrent > 0) {
-      ticksWithZeroCurrent--;
+  if (motorCurrent <= ZERO_CURRENT_VALUE) {
+    if (firstTimestampWithZeroCurrent == 0) {
+      firstTimestampWithZeroCurrent = millis();
+    } else if(millis() - firstTimestampWithZeroCurrent > MAX_DURATION_WITH_ZERO_CURRENT) {
+      firstTimestampWithZeroCurrent = 0;
+      return BOTTOM_REACHED;
     }
-  }
-
-  if (ticksWithZeroCurrent == MAX_TICKS_WITH_ZERO_CURRENT) {
-    ticksWithZeroCurrent = 0;
-    return BOTTOM_REACHED;
   }
 
   return NONE;
@@ -280,18 +270,15 @@ MountStateMachine::State MountStateMachine::getNextStateForAutoMovingUp(Event ev
   }
 }
 
-MountStateMachine::State MountStateMachine::getNextStateForFault(Event) {
-  static int ticks = 0;
-  digitalWrite(LED_BUILTIN, 1);
-  if (ticks++ == TICKS_TO_WAIT_AFTER_FAULT) {
-    ticks = 0;
-    digitalWrite(LED_BUILTIN, 0);
-    return STOPPED;
-  }
-  return FAULT;
+MountStateMachine::State MountStateMachine::getNextStateForFault(Event) const {
+  return millis() < faultClearTimestamp ? FAULT : STOPPED;
 }
 
 bool MountStateMachine::transitionToStopped() {
+  // If coming from FAULT, reset the LED
+  if (state == FAULT) {
+    digitalWrite(LED_BUILTIN, 1);
+  }
   mountController->stop();
   state = STOPPED;
   return true;
@@ -378,13 +365,17 @@ bool MountStateMachine::transitionToAutoMovingDown() {
 }
 
 bool MountStateMachine::transitionToFault() {
+  if (faultClearTimestamp <= millis()) {
+    digitalWrite(LED_BUILTIN, 1);
+    faultClearTimestamp = millis() + FAULT_WAIT_DURATION;
+  }
   mountController->stop();
   state = FAULT;
   return true;
 }
 
 void MountStateMachine::printInfo(Event event) {
-  static char info[144];
+  static char info[180];
   static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nDist Diff:%11d\r\nState:%15s\r\nEvt:%17s";
   Debug::home();
   snprintf(info, sizeof(info), fmt,

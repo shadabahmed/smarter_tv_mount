@@ -7,17 +7,22 @@
 
 #define MAX_UP_CURRENT 375
 #define MAX_DOWN_CURRENT 175
-#define MAX_LEFT_CURRENT 200
-#define MAX_RIGHT_CURRENT 200
-#define MAX_TICKS_WITH_OVER_CURRENT 4
+#define MAX_LEFT_CURRENT 180
+#define MAX_RIGHT_CURRENT 191
 #define ZERO_CURRENT_VALUE 2
-#define MAX_TICKS_WITH_ZERO_CURRENT 2
+
 #define MIN_DIST_FROM_WALL 150
 #define MIN_SOFT_DIST_FROM_WALL 250
-#define SETUP_WAIT 2000
-#define TICK 5
-#define TICKS_TO_WAIT_AFTER_FAULT 200 / TICK
-#define TICKS_TO_WAIT_FOR_TV_ON 3
+
+// Duration configs
+// TODO: Fix for overflow of millis
+#define SETUP_DELAY 2000
+#define LOOP_DELAY 5
+#define FAULT_WAIT_DURATION 2000
+#define TV_CHANGE_DEBOUNCE_DURATION 20
+#define MAX_DURATION_WITH_OVER_CURRENT 2000
+#define MAX_DURATION_WITH_ZERO_CURRENT 10
+
 #define MAX_SENSOR_DIFF 40
 #define MIN_SENSOR_DIFF -40
 
@@ -30,18 +35,21 @@ class MountStateMachine {
 
   public:
     MountStateMachine();
-    State getState() { return this->state; };
-    Event getEvent();
     void begin();
-    bool transitionState(Event);
+    void update();
+    State getState() { return this->state; };
     static const char * getStateString(State state) { return StateStrings[state]; };
     static const char * getEventString(Event event) { return EventStrings[event]; };
-    void printInfo(Event);
   private:
     MountController* mountController;
     Remote* remote;
     DistanceSensors* sensors;
     State state;
+    unsigned long faultClearTimestamp;
+    void refresh();
+    void printInfo(Event);
+    Event getEvent();
+    bool transitionState(Event);
     Event getTvEvent();
     Event getRemoteEvent();    
     Event getUpDownMotorFaultEvent();
@@ -58,7 +66,7 @@ class MountStateMachine {
     State getNextStateForMovingLeft(Event);
     State getNextStateForAutoMovingUp(Event);
     State getNextStateForAutoMovingDown(Event);
-    State getNextStateForFault(Event);
+    State getNextStateForFault(Event) const;
     bool transitionToStopped();
     bool transitionToMovingDown();
     bool transitionToMovingUp();
@@ -74,11 +82,11 @@ class MountStateMachine {
     bool canMoveRight()  { return wallDistanceCheck() && sensors->getDistDiff() < MAX_SENSOR_DIFF; }
     bool wallDistanceCheck() { return sensors->getMinDistance() > MIN_DIST_FROM_WALL; }
 
-    inline static char * EventStrings[] =
+    inline static const char * EventStrings[] =
         { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
           "LEFT_PRESSED","FAULT_DETECTED", "BOTTOM_REACHED","TOP_REACHED",
           "RIGHT_REACHED", "LEFT_REACHED", "TV_TURNED_ON", "TV_TURNED_OFF" };
-    inline static char * StateStrings[] =
+    inline static const char * StateStrings[] =
         { "STOPPED", "MOVING_DOWN", "MOVING_UP", "MOVING_RIGHT",
           "MOVING_LEFT","AUTO_MOVING_DOWN", "AUTO_MOVING_UP","FAULT" };
 };
