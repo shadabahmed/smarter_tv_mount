@@ -12,6 +12,11 @@
 #define OPTIMIZE_I2C 1
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiWire.h"
+#ifdef ARDUINO_AVR_NANO_EVERY
+static SSD1306AsciiWire display;
+#elif ARDUINO_NANO_RP2040_CONNECT
+static SSD1306AsciiWire display(Wire);
+#endif
 #endif
 
 class Debug {
@@ -99,10 +104,6 @@ public:
     display.clearToEOL();
 #endif
   }
-#ifdef OLED_DEBUG
-private:
-  inline static const SSD1306AsciiWire display;
-#endif
 };
 
 #endif
