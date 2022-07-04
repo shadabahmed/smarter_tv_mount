@@ -7,9 +7,9 @@ MountController::MountController() {
 }
 
 void MountController::begin() {
-  Debug::println("Init motor 1...");
+  Debug.println("Init motor 1...");
   upDownController->begin();
-  Debug::println("Init motor 2...");
+  Debug.println("Init motor 2...");
   leftRightController->begin();
 }
 

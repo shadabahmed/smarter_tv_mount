@@ -12,98 +12,108 @@
 #define OPTIMIZE_I2C 1
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiWire.h"
-#ifdef ARDUINO_AVR_NANO_EVERY
-static SSD1306AsciiWire display;
-#elif ARDUINO_NANO_RP2040_CONNECT
-static SSD1306AsciiWire display(Wire);
-#endif
 #endif
 
-class Debug {
+class DebugClass {
 public:
-  static void begin() {
+  DebugClass() {
+#ifdef OLED_DEBUG
+#ifdef ARDUINO_AVR_NANO_EVERY
+    display = new SSD1306AsciiWire;
+#endif
+#ifdef ARDUINO_NANO_RP2040_CONNECT
+    display = new SSD1306AsciiWire(Wire);
+#endif
+#endif
+  }
+  void begin() {
     Serial.begin(SERIAL_BAUD);
 #ifdef OLED_DEBUG
     Wire.begin();
     Wire.setClock(400000L);
-    display.begin(&Adafruit128x64, 0x3C);
-    display.setFont(Adafruit5x7);
-    display.clear();
+    display->begin(&Adafruit128x64, 0x3C);
+    display->setFont(Adafruit5x7);
+    display->clear();
 #endif
   }
 
-  static void clear() {
+  void clear() {
 #ifdef SERIAL_DEBUG
     Serial.print("\033[2J"  );
 #endif
 #ifdef OLED_DEBUG
-    display.clear();
-    display.home();
+    display->clear();
+    display->home();
 #endif
   }
 
-  static void home() {
+  void home() {
 #ifdef OLED_DEBUG
-    display.home();
+    display->home();
 #endif
   }
 
-  static void print(const char * str) {
+  void print(const char * str) {
 #ifdef SERIAL_DEBUG
     Serial.print(str);
 #endif
 #ifdef OLED_DEBUG
-  display.print(str);
+  display->print(str);
 #endif
   }
 
-  static void print(const arduino::__FlashStringHelper * str) {
+  void print(const arduino::__FlashStringHelper * str) {
 #ifdef SERIAL_DEBUG
     Serial.print(str);
 #endif
 #ifdef OLED_DEBUG
-    display.print(str);
+    display->print(str);
 #endif
   }
 
-  static void print(int val) {
+  void print(int val) {
 #ifdef SERIAL_DEBUG
     Serial.print(val);
 #endif
 #ifdef OLED_DEBUG
-    display.print(val);
+    display->print(val);
 #endif
   }
 
-  static void println(const char * str) {
+  void println(const char * str) {
 #ifdef SERIAL_DEBUG
     Serial.println(str);
 #endif
 #ifdef OLED_DEBUG
-    display.println(str);
-    display.clearToEOL();
+    display->println(str);
+    display->clearToEOL();
 #endif
   }
 
-  static void println(const arduino::__FlashStringHelper * str) {
+  void println(const arduino::__FlashStringHelper * str) {
 #ifdef SERIAL_DEBUG
     Serial.println(str);
 #endif
 #ifdef OLED_DEBUG
-    display.println(str);
-    display.clearToEOL();
+    display->println(str);
+    display->clearToEOL();
 #endif
   }
 
-  static void println(int val) {
+  void println(int val) {
 #ifdef SERIAL_DEBUG
     Serial.println(val);
 #endif
 #ifdef OLED_DEBUG
-    display.println(val);
-    display.clearToEOL();
+    display->println(val);
+    display->clearToEOL();
 #endif
   }
+#ifdef OLED_DEBUG
+  SSD1306AsciiWire* display;
+#endif
 };
 
+extern DebugClass Debug;
 #endif
+

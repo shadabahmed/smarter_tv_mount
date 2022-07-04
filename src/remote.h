@@ -12,7 +12,7 @@ class Remote {
   public:
   Remote() = default;
   void begin() {
-    Debug::println("Init remote...");
+    Debug.println("Init remote...");
     pinMode(BUTTON_D0, INPUT);
     pinMode(BUTTON_D1, INPUT);
     pinMode(BUTTON_D2, INPUT);

@@ -36,12 +36,12 @@ void DistanceSensors::begin() {
 
   // Change addresses of the sensors by waking one after another starting from zero
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    Debug::print("Init sensor ");
-    Debug::println(i);
+    Debug.print("Init sensor ");
+    Debug.println(i);
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
     if (!sensors[i]->init()) {
-      Debug::print("Failed init sensor ");
-      Debug::println(i);
+      Debug.print("Failed init sensor ");
+      Debug.println(i);
       while(1);
     }
     sensors[i]->setAddress(DISTANCE_SENSORS_ADDRESS_START_ADDRESS + i);
@@ -83,13 +83,12 @@ int DistanceSensors::getMinDistance() {
 }
 
 int DistanceSensors::getDistDiff() {
-  int leftMostDistance = 0;
-  int rightMostDistance = 0;
+  int leftMostDistance = 0, rightMostDistance = 0;
 #ifdef USE_DISTANCE_SENSORS
-  int leftMostSum = 0 , rightMostSum = 0;
+  unsigned int leftMostSum = 0 , rightMostSum = 0;
   for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
     leftMostSum += readings[0][j];
-    rightMostSum += readings[DISTANCE_AVG_WINDOW_SIZE - 1][j];
+    rightMostSum += readings[DISTANCE_SENSORS_COUNT - 1][j];
   }
   leftMostDistance = leftMostSum / DISTANCE_AVG_WINDOW_SIZE;
   rightMostDistance = rightMostSum / DISTANCE_AVG_WINDOW_SIZE;

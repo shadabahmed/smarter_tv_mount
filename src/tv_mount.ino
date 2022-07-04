@@ -17,12 +17,12 @@ void setup() {
   // Needed for high frequency PWM at Pin 5. Sets pre-scalar for TCA0 to clock freq
   TCA0.SPLIT.CTRLA = TCB_ENABLE_bm;
 #endif
-  Debug::begin();
-  Debug::println("Init...");
+  Debug.begin();
+  Debug.println("Init...");
   mount.begin();
-  Debug::println("Finished init !");
+  Debug.println("Finished init !");
   delay(SETUP_DELAY);
-  Debug::clear();
+  Debug.clear();
   // Enable watch dog timer with 2s interval
 #ifdef ARDUINO_AVR_NANO_EVERY
   wdt_enable(WDTO_2S);

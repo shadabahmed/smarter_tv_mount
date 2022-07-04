@@ -10,7 +10,7 @@ MountStateMachine::MountStateMachine() {
 }
 
 void MountStateMachine::begin() {
-  Debug::println("Init state machine...");
+  Debug.println("Init state machine...");
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(TV_PIN, INPUT_PULLUP);
   mountController->begin();
@@ -377,7 +377,7 @@ bool MountStateMachine::transitionToFault() {
 void MountStateMachine::printInfo(Event event) {
   static char info[180];
   static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nDist Diff:%11d\r\nState:%15s\r\nEvt:%17s";
-  Debug::home();
+  Debug.home();
   snprintf(info, sizeof(info), fmt,
            mountController->isTvTurnedOn() ? "ON" : "OFF",
            mountController->getUpDownMotorCurrent(),
@@ -386,5 +386,5 @@ void MountStateMachine::printInfo(Event event) {
            sensors->getDistDiff(),
            getStateString(getState()),
            getEventString(event));
-    Debug::println(info);
+    Debug.println(info);
 }
