@@ -5,7 +5,7 @@
 DistanceSensors::DistanceSensors() {
 #ifdef USE_DISTANCE_SENSORS
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    sensors[i] = new Adafruit_VL53L0X;
+    sensors[i] = new VL53L0X;
     pinMode(DISTANCE_SENSORS_CONTROL_PINS[i], OUTPUT);
     for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
       readings[i][j] = MAX_DISTANCE;
@@ -39,11 +39,13 @@ void DistanceSensors::begin() {
     Debug::print("Init sensor ");
     Debug::println(i);
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
-    if(!sensors[i]->begin(DISTANCE_SENSORS_ADDRESS_START_ADDRESS + i)) {
+    if (!sensors[i]->init()) {
       Debug::print("Failed init sensor ");
       Debug::println(i);
       while(1);
     }
+    sensors[i]->setAddress(DISTANCE_SENSORS_ADDRESS_START_ADDRESS + i);
+    sensors[i]->setMeasurementTimingBudget(20000);
     delay(10);
   }
 
@@ -54,10 +56,9 @@ void DistanceSensors::refresh() {
 #ifdef USE_DISTANCE_SENSORS
   static unsigned int readingIndex;
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    VL53L0X_RangingMeasurementData_t measure;
-    sensors[i]->rangingTest(&measure, false);
-    if(measure.RangeStatus != 4) {
-      readings[i][readingIndex] = measure.RangeMilliMeter >= MAX_DISTANCE ? MAX_DISTANCE : measure.RangeMilliMeter;
+    unsigned int reading = sensors[i]->readRangeSingleMillimeters();
+    if(!sensors[i]->timeoutOccurred()) {
+      readings[i][readingIndex] = reading >= MAX_DISTANCE ? MAX_DISTANCE : reading;
     }
   }
   readingIndex++;

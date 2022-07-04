@@ -7,7 +7,7 @@
 #define DISTANCE_SENSORS_ADDRESS_START_ADDRESS 0x30
 const int DISTANCE_SENSORS_CONTROL_PINS[] = {25, 22};
 #include <Wire.h>
-#include <Adafruit_VL53L0X.h>
+#include <VL53L0X.h>
 #endif
 
 #define MAX_DISTANCE 2000
@@ -22,10 +22,10 @@ class DistanceSensors {
   int getDistDiff();
   private:
 #ifdef USE_DISTANCE_SENSORS
-  Adafruit_VL53L0X* sensors[DISTANCE_SENSORS_COUNT];
-  int readings[DISTANCE_SENSORS_COUNT][DISTANCE_AVG_WINDOW_SIZE];
+  VL53L0X* sensors[DISTANCE_SENSORS_COUNT];
+  unsigned int readings[DISTANCE_SENSORS_COUNT][DISTANCE_AVG_WINDOW_SIZE];
 #endif
 };
 
 
-#endif //TV_MOUNT_DISTANCE_SENSORS_H
+#endif
