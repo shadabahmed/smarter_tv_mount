@@ -37,11 +37,11 @@ void DistanceSensors::begin() {
   // Change addresses of the sensors by waking one after another starting from zero
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     Debug.print("Init sensor ");
-    Debug.println(i);
+    Debug.println(i + 1);
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
     if (!sensors[i]->init()) {
       Debug.print("Failed init sensor ");
-      Debug.println(i);
+      Debug.println(i + 1);
       while(1);
     }
     sensors[i]->setAddress(DISTANCE_SENSORS_ADDRESS_START_ADDRESS + i);

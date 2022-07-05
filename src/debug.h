@@ -32,7 +32,7 @@ public:
     Wire.begin();
     Wire.setClock(400000L);
     display->begin(&Adafruit128x64, 0x3C);
-    display->setFont(Adafruit5x7);
+    display->setFont(Stang5x7);
     display->clear();
 #endif
   }
