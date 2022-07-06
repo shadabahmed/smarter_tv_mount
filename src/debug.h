@@ -29,8 +29,6 @@ public:
   void begin() {
     Serial.begin(SERIAL_BAUD);
 #ifdef OLED_DEBUG
-    Wire.begin();
-    Wire.setClock(400000L);
     display->begin(&Adafruit128x64, 0x3C);
     display->setFont(Stang5x7);
     display->clear();

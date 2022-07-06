@@ -1,6 +1,8 @@
 
 #include <debug.h>
 #include <mount_state_machine.h>
+//#define ENABLE_WDT
+#ifdef ENABLE_WDT
 #ifdef ARDUINO_AVR_NANO_EVERY
 #include <AVR/wdt.h>
 #elif ARDUINO_NANO_RP2040_CONNECT
@@ -10,6 +12,7 @@ extern "C" {
 #else
 #error "Error ! Board not supported !"
 #endif
+#endif
 
 MountStateMachine mount;
 void setup() {
@@ -17,25 +20,31 @@ void setup() {
   // Needed for high frequency PWM at Pin 5. Sets pre-scalar for TCA0 to clock freq
   TCA0.SPLIT.CTRLA = TCB_ENABLE_bm;
 #endif
+  Wire.begin();
+  Wire.setClock(400000L);
   Debug.begin();
   Debug.println("Init...");
   mount.begin();
   Debug.println("Finished init !");
   delay(SETUP_DELAY);
   Debug.clear();
+#ifdef ENABLE_WDT
   // Enable watch dog timer with 2s interval
 #ifdef ARDUINO_AVR_NANO_EVERY
   wdt_enable(WDTO_2S);
 #elif ARDUINO_NANO_RP2040_CONNECT
   watchdog_enable(2000, true);
 #endif
+#endif
 }
 
 void loop() {
+#ifdef ENABLE_WDT
 #ifdef ARDUINO_AVR_NANO_EVERY
   wdt_reset();
 #elif ARDUINO_NANO_RP2040_CONNECT
   watchdog_update();
+#endif
 #endif
   mount.update();
   delay(LOOP_DELAY);

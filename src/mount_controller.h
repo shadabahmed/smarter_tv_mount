@@ -5,10 +5,6 @@
 
 #define MOUNT_CONTROLLER_H_
 
-// define TV INPUTS
-#define TV_PIN 21
-#define TV_ON 0
-
 // MOTOR 1 CONFIG - UP DOWN ARM
 #define MOTOR1_PWM_PIN 5
 #define MOTOR1_IN_A_PIN 2
@@ -41,7 +37,6 @@ class MountController {
     void moveRight() { leftRightController->run(RIGHT_DIR, MOTOR2_DUTY_CYCLE); };
     int getUpDownMotorCurrent() { return upDownController->getCurrent(); };
     int getLeftRightMotorCurrent() { return leftRightController->getCurrent(); };
-    bool isTvTurnedOn() { return digitalRead(TV_PIN) == TV_ON; };
     void stop() { upDownController->stop(); leftRightController->stop(); };
   private:
     MotorController *upDownController;

@@ -5,6 +5,12 @@
 #include "remote.h"
 #include "distance_sensors.h"
 
+#ifdef ARDUINO_NANO_RP2040_CONNECT
+#include <WiFiNINA.h>
+#endif
+#define TV_PIN A7
+#define TV_ON 0
+
 #define MAX_UP_CURRENT 375
 #define MAX_DOWN_CURRENT 175
 #define MAX_LEFT_CURRENT 180
@@ -81,6 +87,7 @@ class MountStateMachine {
     bool canMoveLeft()  { return wallDistanceCheck() && sensors->getDistDiff() > MIN_SENSOR_DIFF; }
     bool canMoveRight()  { return wallDistanceCheck() && sensors->getDistDiff() < MAX_SENSOR_DIFF; }
     bool wallDistanceCheck() { return sensors->getMinDistance() > MIN_DIST_FROM_WALL; }
+    bool isTvTurnedOn() { return digitalRead(TV_PIN) == TV_ON; }
 
     inline static const char * EventStrings[] =
         { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",

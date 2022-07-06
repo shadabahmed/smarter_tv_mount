@@ -11,8 +11,8 @@ MountStateMachine::MountStateMachine() {
 
 void MountStateMachine::begin() {
   Debug.println("Init state machine...");
-  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(TV_PIN, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
   mountController->begin();
   remote->begin();
   sensors->begin();
@@ -31,7 +31,7 @@ void MountStateMachine::update() {
 
 MountStateMachine::Event MountStateMachine::getEvent() {
   sensors->refresh();
-  Event events[] = {
+  Event events[8] = {
       getUpDownMotorFaultEvent(),
       getLeftRightMotorFaultEvent(),
       getUpperLimitEvent(),
@@ -42,8 +42,8 @@ MountStateMachine::Event MountStateMachine::getEvent() {
       getRemoteEvent()
   };
   // Find first non-NONE event or return the last one (remote-event)
-  unsigned int matchingIdx = sizeof(events) - 1;
-  for(unsigned int i = 0; i < sizeof(events) - 1; i++) {
+  unsigned int matchingIdx = 7;
+  for(unsigned int i = 0; i < 7; i++) {
     if (events[i] != NONE) {
       matchingIdx = i;
       break;
@@ -101,9 +101,9 @@ MountStateMachine::Event MountStateMachine::getLeftRightMotorFaultEvent() {
 }
 
 MountStateMachine::Event MountStateMachine::getTvEvent() {
-  static bool prevTvOn = mountController->isTvTurnedOn();
+  static bool prevTvOn = isTvTurnedOn();
   static unsigned long lastChangeTimestamp = 0;
-  bool tvOn = mountController->isTvTurnedOn();
+  bool tvOn = isTvTurnedOn();
   // DEBOUNCE TV change event to prevent trigger on sudden pulses
   if (prevTvOn != tvOn) {
     if(lastChangeTimestamp == 0) {
@@ -375,11 +375,11 @@ bool MountStateMachine::transitionToFault() {
 }
 
 void MountStateMachine::printInfo(Event event) {
-  static char info[180];
+  static char info[256];
   static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nDist Diff:%11d\r\nState:%15s\r\nEvt:%17s";
   Debug.home();
   snprintf(info, sizeof(info), fmt,
-           mountController->isTvTurnedOn() ? "ON" : "OFF",
+           isTvTurnedOn() ? "ON" : "OFF",
            mountController->getUpDownMotorCurrent(),
            mountController->getLeftRightMotorCurrent(),
            sensors->getMinDistance(),
