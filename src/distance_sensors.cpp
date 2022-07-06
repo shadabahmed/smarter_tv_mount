@@ -4,9 +4,12 @@
 
 DistanceSensors::DistanceSensors() {
 #ifdef USE_DISTANCE_SENSORS
+  for(int i : DISTANCE_SENSORS_CONTROL_PINS) {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, 0);
+  }
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     sensors[i] = new VL53L0X;
-    pinMode(DISTANCE_SENSORS_CONTROL_PINS[i], OUTPUT);
     for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
       readings[i][j] = MAX_DISTANCE;
     }
@@ -16,24 +19,6 @@ DistanceSensors::DistanceSensors() {
 
 void DistanceSensors::begin() {
 #ifdef USE_DISTANCE_SENSORS
-  // Set all sensors XSHUT pin to low
-  for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 0);
-  }
-  delay(10);
-
-  // Set all sensors XSHUT pin to high
-  for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
-  }
-  delay(10);
-
-  // Set all sensors XSHUT pin to low except first
-  for(int i = 1; i < DISTANCE_SENSORS_COUNT; i++) {
-    digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 0);
-  }
-  delay(10);
-
   // Change addresses of the sensors by waking one after another starting from zero
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     Debug.print("Init sensor ");
@@ -62,6 +47,9 @@ void DistanceSensors::refresh() {
     }
   }
   readingIndex++;
+  if (readingIndex == DISTANCE_AVG_WINDOW_SIZE) {
+    readingIndex = 0;
+  }
 #else
 #endif
 }
@@ -78,6 +66,7 @@ int DistanceSensors::getMinDistance() {
       minReading = sum / DISTANCE_AVG_WINDOW_SIZE;
     }
   }
+
 #endif
   return minReading;
 }
