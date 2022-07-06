@@ -16,21 +16,21 @@ void MotorController::begin() const {
   pinMode(inA, OUTPUT);
   pinMode(inB, OUTPUT);
   pinMode(pwm, OUTPUT);
-  digitalWrite(selA, 0);
-  digitalWrite(inA, 0);
-  digitalWrite(inB, 0);
-  digitalWrite(pwm, 0);
+  digitalWrite(selA, LOW);
+  digitalWrite(inA, LOW);
+  digitalWrite(inB, LOW);
+  digitalWrite(pwm, LOW);
 }
 
 void MotorController::run(int dir, int dutyCycle) const {
   if (dir) {
-    digitalWrite(selA, 1);
-    digitalWrite(inA, 1);
-    digitalWrite(inB, 0);
+    digitalWrite(selA, HIGH);
+    digitalWrite(inA, HIGH);
+    digitalWrite(inB, LOW);
   } else {
-    digitalWrite(selA, 0);
-    digitalWrite(inA, 0);
-    digitalWrite(inB, 1);
+    digitalWrite(selA, LOW);
+    digitalWrite(inA, LOW);
+    digitalWrite(inB, HIGH);
   }
   analogWrite(pwm, map(dutyCycle, 0, 100, 0, 255));
 }

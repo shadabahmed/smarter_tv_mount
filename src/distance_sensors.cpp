@@ -17,7 +17,7 @@ void DistanceSensors::begin() {
 #ifdef USE_DISTANCE_SENSORS
   for(int i : DISTANCE_SENSORS_CONTROL_PINS) {
     pinMode(i, OUTPUT);
-    digitalWrite(i, 0);
+    digitalWrite(i, LOW);
     delay(10);
   }
 
@@ -25,7 +25,7 @@ void DistanceSensors::begin() {
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     Debug.print("Init sensor ");
     Debug.println(i + 1);
-    digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
+    digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], HIGH);
     delay(10);
     if (!sensors[i]->init()) {
       Debug.print("Failed init sensor ");

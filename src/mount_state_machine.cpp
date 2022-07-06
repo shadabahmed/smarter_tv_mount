@@ -278,7 +278,7 @@ MountStateMachine::State MountStateMachine::getNextStateForFault(Event) const {
 bool MountStateMachine::transitionToStopped() {
   // If coming from FAULT, reset the LED
   if (state == FAULT) {
-    digitalWrite(LED_BUILTIN, 1);
+    digitalWrite(LED_BUILTIN, LOW);
   }
   mountController->stop();
   state = STOPPED;
@@ -369,7 +369,7 @@ bool MountStateMachine::transitionToFault() {
   Serial.println(faultClearTimestamp);
   Serial.println(millis());
   if (faultClearTimestamp <= millis()) {
-    digitalWrite(LED_BUILTIN, 1);
+    digitalWrite(LED_BUILTIN, HIGH);
     faultClearTimestamp = millis() + FAULT_WAIT_DURATION;
   }
   mountController->stop();
