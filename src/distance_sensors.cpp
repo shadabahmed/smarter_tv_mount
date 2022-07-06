@@ -4,10 +4,6 @@
 
 DistanceSensors::DistanceSensors() {
 #ifdef USE_DISTANCE_SENSORS
-  for(int i : DISTANCE_SENSORS_CONTROL_PINS) {
-    pinMode(i, OUTPUT);
-    digitalWrite(i, 0);
-  }
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     sensors[i] = new VL53L0X;
     for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
@@ -19,11 +15,18 @@ DistanceSensors::DistanceSensors() {
 
 void DistanceSensors::begin() {
 #ifdef USE_DISTANCE_SENSORS
+  for(int i : DISTANCE_SENSORS_CONTROL_PINS) {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, 0);
+    delay(10);
+  }
+
   // Change addresses of the sensors by waking one after another starting from zero
   for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
     Debug.print("Init sensor ");
     Debug.println(i + 1);
     digitalWrite(DISTANCE_SENSORS_CONTROL_PINS[i], 1);
+    delay(10);
     if (!sensors[i]->init()) {
       Debug.print("Failed init sensor ");
       Debug.println(i + 1);
