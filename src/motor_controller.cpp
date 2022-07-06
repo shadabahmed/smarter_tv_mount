@@ -16,7 +16,6 @@ void MotorController::begin() const {
   pinMode(inA, OUTPUT);
   pinMode(inB, OUTPUT);
   pinMode(pwm, OUTPUT);
-  pinMode(currentSense, INPUT_PULLDOWN);
   digitalWrite(selA, 0);
   digitalWrite(inA, 0);
   digitalWrite(inB, 0);
@@ -43,7 +42,11 @@ void MotorController::stop() {
 
 int MotorController::getCurrent() {
   int cumulatedCurrent = 0;
+#ifdef ARDUINO_AVR_NANO_EVERY
   currentReadings[++currentReadingsIndex] = analogRead(currentSense);
+#elif ARDUINO_NANO_RP2040_CONNECT
+  currentReadings[++currentReadingsIndex] = analogRead(NinaPin(currentSense));
+#endif
   if (currentReadingsIndex == CURRENT_READINGS_WINDOW_SIZE)
     currentReadingsIndex = 0;
   for (int i = 0; i < CURRENT_READINGS_WINDOW_SIZE; i++) {
