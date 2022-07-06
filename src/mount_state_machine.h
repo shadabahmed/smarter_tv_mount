@@ -8,7 +8,7 @@
 #ifdef ARDUINO_NANO_RP2040_CONNECT
 #include <WiFiNINA.h>
 #endif
-#define TV_PIN A7
+#define TV_PIN 16
 #define TV_ON 0
 
 #define MAX_UP_CURRENT 375
