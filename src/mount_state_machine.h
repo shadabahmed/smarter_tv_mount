@@ -5,10 +5,7 @@
 #include "remote.h"
 #include "distance_sensors.h"
 
-#ifdef ARDUINO_NANO_RP2040_CONNECT
-#include <WiFiNINA.h>
-#endif
-#define TV_PIN 16
+#define TV_PIN 17
 #define TV_ON 0
 
 #define MAX_UP_CURRENT 375
@@ -21,13 +18,12 @@
 #define MIN_SOFT_DIST_FROM_WALL 250
 
 // Duration configs
-// TODO: Fix for overflow of millis
 #define SETUP_DELAY 2000
 #define LOOP_DELAY 5
 #define FAULT_WAIT_DURATION 2000
 #define TV_CHANGE_DEBOUNCE_DURATION 20
 #define MAX_DURATION_WITH_OVER_CURRENT 2000
-#define MAX_DURATION_WITH_ZERO_CURRENT 10
+#define MAX_DURATION_WITH_ZERO_CURRENT 1000
 
 #define MAX_SENSOR_DIFF 40
 #define MIN_SENSOR_DIFF -40
@@ -81,7 +77,7 @@ class MountStateMachine {
     bool transitionToAutoMovingUp();
     bool transitionToAutoMovingDown();
     bool transitionToFault();
-    bool canMoveDown() { return sensors->getMinDistance() < MAX_DISTANCE; };
+    bool canMoveDown() { return sensors->getMinDistance() <= MAX_DISTANCE; };
     bool canMoveUp() { return wallDistanceCheck(); }
     bool shouldSlowMoveUp() { return sensors->getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
     bool canMoveLeft()  { return wallDistanceCheck() && sensors->getDistDiff() > MIN_SENSOR_DIFF; }

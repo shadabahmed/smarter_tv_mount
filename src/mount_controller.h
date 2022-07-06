@@ -28,14 +28,15 @@
 #define MOTOR1_CURRENT_SENSE_INPUT A7
 #define MOTOR2_CURRENT_SENSE_INPUT A6
 #elif ARDUINO_NANO_RP2040_CONNECT
-#define MOTOR1_CURRENT_SENSE_INPUT 36
-#define MOTOR2_CURRENT_SENSE_INPUT 35
+#define MOTOR1_CURRENT_SENSE_INPUT A7.get()
+#define MOTOR2_CURRENT_SENSE_INPUT A6.get()
 #endif
 
 class MountController {
   public:
     MountController();
     void begin();
+    void refresh();
     void moveUp() { upDownController->run(UP_DIR, MOTOR1_DUTY_CYCLE); };
     void moveUpSlow() { upDownController->run(UP_DIR, MOTOR1_SLOW_DUTY_CYCLE); };
     void moveDown() { upDownController->run(DOWN_DIR, MOTOR1_DUTY_CYCLE); };

@@ -19,6 +19,7 @@ void MountStateMachine::begin() {
 }
 
 void MountStateMachine::refresh() {
+  mountController->refresh();
   sensors->refresh();
 }
 
@@ -365,6 +366,8 @@ bool MountStateMachine::transitionToAutoMovingDown() {
 }
 
 bool MountStateMachine::transitionToFault() {
+  Serial.println(faultClearTimestamp);
+  Serial.println(millis());
   if (faultClearTimestamp <= millis()) {
     digitalWrite(LED_BUILTIN, 1);
     faultClearTimestamp = millis() + FAULT_WAIT_DURATION;

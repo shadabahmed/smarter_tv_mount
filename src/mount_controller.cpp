@@ -13,3 +13,8 @@ void MountController::begin() {
   leftRightController->begin();
 }
 
+void MountController::refresh() {
+  upDownController->refresh();
+  leftRightController->refresh();
+}
+

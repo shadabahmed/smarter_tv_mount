@@ -36,12 +36,11 @@ void MotorController::run(int dir, int dutyCycle) const {
 }
 
 void MotorController::stop() {
-  digitalWrite(pwm, 0);
+  analogWrite(pwm, 0);
   this->resetCurrentReadings();
 }
 
-int MotorController::getCurrent() {
-  int cumulatedCurrent = 0;
+void MotorController::refresh() {
 #ifdef ARDUINO_AVR_NANO_EVERY
   currentReadings[++currentReadingsIndex] = analogRead(currentSense);
 #elif ARDUINO_NANO_RP2040_CONNECT
@@ -49,6 +48,10 @@ int MotorController::getCurrent() {
 #endif
   if (currentReadingsIndex == CURRENT_READINGS_WINDOW_SIZE)
     currentReadingsIndex = 0;
+}
+
+int MotorController::getCurrent() {
+  int cumulatedCurrent = 0;
   for (int i = 0; i < CURRENT_READINGS_WINDOW_SIZE; i++) {
 		cumulatedCurrent += currentReadings[i];
 	}
