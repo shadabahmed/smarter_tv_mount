@@ -32,6 +32,8 @@
 #define MOTOR2_CURRENT_SENSE_INPUT A6.get()
 #endif
 
+#define FAULT_LED LED_BUILTIN
+
 class MountController {
   public:
     MountController();

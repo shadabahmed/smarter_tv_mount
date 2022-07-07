@@ -14,6 +14,9 @@ extern "C" {
 #endif
 #endif
 
+#define SETUP_DELAY 2000
+#define LOOP_DELAY 2
+
 MountStateMachine mount;
 void setup() {
   Wire.begin();

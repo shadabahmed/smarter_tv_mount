@@ -12,7 +12,7 @@ MountStateMachine::MountStateMachine() {
 void MountStateMachine::begin() {
   Debug.println("Init state machine...");
   pinMode(TV_PIN, INPUT_PULLUP);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(FAULT_LED, OUTPUT);
   mountController->begin();
   remote->begin();
   sensors->begin();
@@ -278,7 +278,7 @@ MountStateMachine::State MountStateMachine::getNextStateForFault(Event) const {
 bool MountStateMachine::transitionToStopped() {
   // If coming from FAULT, reset the LED
   if (state == FAULT) {
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(FAULT_LED, LOW);
   }
   mountController->stop();
   state = STOPPED;
@@ -366,8 +366,9 @@ bool MountStateMachine::transitionToAutoMovingDown() {
 }
 
 bool MountStateMachine::transitionToFault() {
-  if (faultClearTimestamp <= millis()) {
-    digitalWrite(LED_BUILTIN, HIGH);
+  // When fault first occurs, we set a faultClearTimeout
+  if (state != FAULT) {
+    digitalWrite(FAULT_LED, HIGH);
     faultClearTimestamp = millis() + FAULT_WAIT_DURATION;
   }
   mountController->stop();

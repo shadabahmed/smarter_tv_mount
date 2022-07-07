@@ -53,7 +53,6 @@ void DistanceSensors::refresh() {
   if (readingIndex == DISTANCE_AVG_WINDOW_SIZE) {
     readingIndex = 0;
   }
-#else
 #endif
 }
 
@@ -69,7 +68,6 @@ int DistanceSensors::getMinDistance() {
       minReading = sum / DISTANCE_AVG_WINDOW_SIZE;
     }
   }
-
 #endif
   return minReading;
 }
