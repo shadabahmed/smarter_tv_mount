@@ -366,8 +366,6 @@ bool MountStateMachine::transitionToAutoMovingDown() {
 }
 
 bool MountStateMachine::transitionToFault() {
-  Serial.println(faultClearTimestamp);
-  Serial.println(millis());
   if (faultClearTimestamp <= millis()) {
     digitalWrite(LED_BUILTIN, HIGH);
     faultClearTimestamp = millis() + FAULT_WAIT_DURATION;

@@ -6,7 +6,7 @@
 #define BUTTON_D0 10
 #define BUTTON_D1 11
 #define BUTTON_D2 12
-#define BUTTON_D3 13
+#define BUTTON_D3 16
 
 class Remote {
   public:

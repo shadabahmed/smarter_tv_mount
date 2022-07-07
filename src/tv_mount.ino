@@ -1,7 +1,7 @@
 
 #include <debug.h>
 #include <mount_state_machine.h>
-//#define ENABLE_WDT
+#define ENABLE_WDT
 #ifdef ENABLE_WDT
 #ifdef ARDUINO_AVR_NANO_EVERY
 #include <AVR/wdt.h>
