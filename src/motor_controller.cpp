@@ -20,6 +20,15 @@ void MotorController::begin() const {
   digitalWrite(inA, LOW);
   digitalWrite(inB, LOW);
   digitalWrite(pwm, LOW);
+#ifdef ARDUINO_AVR_NANO_EVERY
+  // Hack to increase PWM frequency. Instead of counting all the way upto 255, we just count upto MAX_PWM_COUNTER_VAL.
+  // PWM_FREQ = 16,000,000 / 64 * MAX_PWM_COUNTER_VAL;
+  TCB0.CCMPL = MAX_PWM_COUNTER_VAL;
+  TCB0.CCMPH = MAX_PWM_COUNTER_VAL / 2;
+
+  TCB1.CCMPL = MAX_PWM_COUNTER_VAL;
+  TCB1.CCMPH = MAX_PWM_COUNTER_VAL / 2;
+#endif
 }
 
 void MotorController::run(int dir, int dutyCycle) const {
@@ -32,7 +41,7 @@ void MotorController::run(int dir, int dutyCycle) const {
     digitalWrite(inA, LOW);
     digitalWrite(inB, HIGH);
   }
-  analogWrite(pwm, map(dutyCycle, 0, 100, 0, 255));
+  analogWrite(pwm, map(dutyCycle, 0, 100, 0, MAX_PWM_COUNTER_VAL));
 }
 
 void MotorController::stop() {

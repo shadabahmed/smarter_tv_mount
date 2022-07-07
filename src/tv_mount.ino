@@ -16,10 +16,6 @@ extern "C" {
 
 MountStateMachine mount;
 void setup() {
-#ifdef ARDUINO_AVR_NANO_EVERY
-  // Needed for high frequency PWM at Pin 5. Sets pre-scalar for TCA0 to clock freq
-  TCA0.SPLIT.CTRLA = TCB_ENABLE_bm;
-#endif
   Wire.begin();
   Wire.setClock(400000L);
   Debug.begin();

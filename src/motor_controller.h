@@ -2,7 +2,10 @@
 #define MOTOR_CONTROLLER_H_
 #include "debug.h"
 
-#ifdef ARDUINO_NANO_RP2040_CONNECT
+#ifdef ARDUINO_AVR_NANO_EVERY
+#define MAX_PWM_COUNTER_VAL 4
+#elif ARDUINO_NANO_RP2040_CONNECT
+#define MAX_PWM_COUNTER_VAL 255
 #include "WiFiNINA.h"
 #endif
 
