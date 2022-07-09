@@ -8,21 +8,22 @@
 // TV CONFIG
 #define TV_PIN 17
 #define TV_ON 0
-#define TV_CHANGE_DEBOUNCE_DURATION 20
+#define TV_CHANGE_DEBOUNCE_DURATION 80
 
 // MOTOR CURRENTS
 #define MAX_UP_CURRENT 375
 #define MAX_DOWN_CURRENT 175
-#define MAX_LEFT_CURRENT 180
-#define MAX_RIGHT_CURRENT 191
+#define MAX_LEFT_CURRENT 200
+#define MAX_RIGHT_CURRENT 200
 #define ZERO_CURRENT_VALUE 2
-#define MAX_DURATION_WITH_OVER_CURRENT 1000
-#define MAX_DURATION_WITH_ZERO_CURRENT 1000
+#define MAX_DURATION_WITH_OVER_CURRENT 500
+#define MAX_DURATION_WITH_ZERO_CURRENT 500
 #define FAULT_WAIT_DURATION 2000
+#define SLOW_UP_DOWN_DUTY_CYCLE 30
 
 // DISTANCE SENSOR CONFIG
-#define MIN_DIST_FROM_WALL 150
-#define MIN_SOFT_DIST_FROM_WALL 250
+#define MIN_DIST_FROM_WALL 90
+#define MIN_SOFT_DIST_FROM_WALL 300
 #define MAX_SENSOR_DIFF 100
 #define MIN_SENSOR_DIFF -100
 
@@ -37,10 +38,9 @@ class MountStateMachine {
     MountStateMachine();
     void begin();
     void update();
-    State getState() { return this->state; };
+  private:
     static const char * getStateString(State state) { return StateStrings[state]; };
     static const char * getEventString(Event event) { return EventStrings[event]; };
-  private:
     MountController* mountController;
     Remote* remote;
     DistanceSensors* sensors;
@@ -77,7 +77,7 @@ class MountStateMachine {
     bool transitionToFault();
     bool canMoveDown() { return sensors->getMinDistance() <= MAX_DISTANCE; };
     bool canMoveUp() { return wallDistanceCheck(); }
-    bool shouldSlowMoveUp() { return sensors->getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
+    bool isCloseToWall() { return sensors->getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
     bool canMoveLeft()  { return wallDistanceCheck() && sensors->getDistDiff() > MIN_SENSOR_DIFF; }
     bool canMoveRight()  { return wallDistanceCheck() && sensors->getDistDiff() < MAX_SENSOR_DIFF; }
     bool wallDistanceCheck() { return sensors->getMinDistance() > MIN_DIST_FROM_WALL; }

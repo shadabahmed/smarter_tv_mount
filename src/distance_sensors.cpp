@@ -64,8 +64,9 @@ int DistanceSensors::getMinDistance() {
     for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
       sum += readings[i][j];
     }
-    if (sum / DISTANCE_AVG_WINDOW_SIZE < minReading) {
-      minReading = sum / DISTANCE_AVG_WINDOW_SIZE;
+    int curReading = sum / DISTANCE_AVG_WINDOW_SIZE;
+    if (curReading < minReading) {
+      minReading = curReading;
     }
   }
 #endif

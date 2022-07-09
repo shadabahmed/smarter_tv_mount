@@ -291,7 +291,7 @@ bool MountStateMachine::transitionToMovingDown() {
     if (state != MOVING_DOWN) {
       mountController->stop();
     }
-    mountController->moveDown();
+    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown();
     state = MOVING_DOWN;
   } else {
     transitionToStopped();
@@ -305,7 +305,7 @@ bool MountStateMachine::transitionToMovingUp() {
     if (state != MOVING_UP) {
       mountController->stop();
     }
-    shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
+    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp();
     state = MOVING_UP;
   } else {
     transitionToStopped();
@@ -344,7 +344,7 @@ bool MountStateMachine::transitionToAutoMovingUp() {
     if (state != AUTO_MOVING_UP) {
       mountController->stop();
     }
-    shouldSlowMoveUp() ? mountController->moveUpSlow() : mountController->moveUp();
+    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp();
     state = AUTO_MOVING_UP;
   } else {
     transitionToStopped();
@@ -357,7 +357,7 @@ bool MountStateMachine::transitionToAutoMovingDown() {
     if (state != AUTO_MOVING_DOWN) {
       mountController->stop();
     }
-    mountController->moveDown();
+    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown();
     state = AUTO_MOVING_DOWN;
   } else {
     transitionToStopped();
@@ -378,7 +378,7 @@ bool MountStateMachine::transitionToFault() {
 
 void MountStateMachine::printInfo(Event event) {
   static char info[256];
-  static const char fmt[] = "TV:%18s\r\nMotor1 Current:%6d\r\nMotor2 Current:%6d\r\nDist:%16d\r\nDist Diff:%11d\r\nState:%15s\r\nEvt:%17s";
+  static const char fmt[] = "TV:%18s \r\nMotor1 Current:%6d \r\nMotor2 Current:%6d \r\nDist:%16d \r\nDist Diff:%11d \r\nState:%15s \r\nEvt:%17s";
   Debug.home();
   snprintf(info, sizeof(info), fmt,
            isTvTurnedOn() ? "ON" : "OFF",
@@ -386,7 +386,7 @@ void MountStateMachine::printInfo(Event event) {
            mountController->getLeftRightMotorCurrent(),
            sensors->getMinDistance(),
            sensors->getDistDiff(),
-           getStateString(getState()),
+           getStateString(state),
            getEventString(event));
     Debug.println(info);
 }

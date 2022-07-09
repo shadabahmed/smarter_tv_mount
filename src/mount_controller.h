@@ -39,11 +39,10 @@ class MountController {
     MountController();
     void begin();
     void refresh();
-    void moveUp() { upDownController->run(UP_DIR, MOTOR1_DUTY_CYCLE); };
-    void moveUpSlow() { upDownController->run(UP_DIR, MOTOR1_SLOW_DUTY_CYCLE); };
-    void moveDown() { upDownController->run(DOWN_DIR, MOTOR1_DUTY_CYCLE); };
-    void moveLeft() { leftRightController->run(LEFT_DIR, MOTOR2_DUTY_CYCLE); };
-    void moveRight() { leftRightController->run(RIGHT_DIR, MOTOR2_DUTY_CYCLE); };
+    void moveUp(int dutyCycle = MOTOR1_DUTY_CYCLE) { upDownController->run(UP_DIR, dutyCycle); };
+    void moveDown(int dutyCycle = MOTOR1_DUTY_CYCLE) { upDownController->run(DOWN_DIR, dutyCycle); };
+    void moveLeft(int dutyCycle = MOTOR2_DUTY_CYCLE) { leftRightController->run(LEFT_DIR, dutyCycle); };
+    void moveRight(int dutyCycle = MOTOR2_DUTY_CYCLE) { leftRightController->run(RIGHT_DIR, dutyCycle); };
     int getUpDownMotorCurrent() { return upDownController->getCurrent(); };
     int getLeftRightMotorCurrent() { return leftRightController->getCurrent(); };
     void stop() { upDownController->stop(); leftRightController->stop(); };
