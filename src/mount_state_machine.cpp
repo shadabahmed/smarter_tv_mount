@@ -291,7 +291,7 @@ bool MountStateMachine::transitionToMovingDown() {
     if (state != MOVING_DOWN) {
       mountController->stop();
     }
-    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown();
+    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown(FAST_UP_DOWN_DUTY_CYCLE);
     state = MOVING_DOWN;
   } else {
     transitionToStopped();
@@ -305,7 +305,7 @@ bool MountStateMachine::transitionToMovingUp() {
     if (state != MOVING_UP) {
       mountController->stop();
     }
-    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp();
+    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp(FAST_UP_DOWN_DUTY_CYCLE);
     state = MOVING_UP;
   } else {
     transitionToStopped();
@@ -318,7 +318,7 @@ bool MountStateMachine::transitionToMovingRight() {
     if (state != MOVING_RIGHT) {
       mountController->stop();
     }
-    mountController->moveRight();
+    mountController->moveRight(LEFT_RIGHT_DUTY_CYCLE);
     state = MOVING_RIGHT;
   } else {
     transitionToStopped();
@@ -331,7 +331,7 @@ bool MountStateMachine::transitionToMovingLeft() {
     if (state != MOVING_LEFT) {
       mountController->stop();
     }
-    mountController->moveLeft();
+    mountController->moveLeft(LEFT_RIGHT_DUTY_CYCLE);
     state = MOVING_LEFT;
   } else {
     transitionToStopped();
@@ -344,7 +344,7 @@ bool MountStateMachine::transitionToAutoMovingUp() {
     if (state != AUTO_MOVING_UP) {
       mountController->stop();
     }
-    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp();
+    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp(FAST_UP_DOWN_DUTY_CYCLE);
     state = AUTO_MOVING_UP;
   } else {
     transitionToStopped();
@@ -357,7 +357,7 @@ bool MountStateMachine::transitionToAutoMovingDown() {
     if (state != AUTO_MOVING_DOWN) {
       mountController->stop();
     }
-    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown();
+    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown(FAST_UP_DOWN_DUTY_CYCLE);
     state = AUTO_MOVING_DOWN;
   } else {
     transitionToStopped();

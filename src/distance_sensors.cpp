@@ -56,15 +56,15 @@ void DistanceSensors::refresh() {
 #endif
 }
 
-int DistanceSensors::getMinDistance() {
-  int minReading = MAX_DISTANCE;
+unsigned int DistanceSensors::getMinDistance() {
+  unsigned int minReading = MAX_DISTANCE;
 #ifdef USE_DISTANCE_SENSORS
-  for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    int sum = 0;
-    for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
-      sum += readings[i][j];
+  for(auto & reading : readings) {
+    unsigned int sum = 0;
+    for(unsigned int j : reading) {
+      sum += j;
     }
-    int curReading = sum / DISTANCE_AVG_WINDOW_SIZE;
+    unsigned int curReading = sum / DISTANCE_AVG_WINDOW_SIZE;
     if (curReading < minReading) {
       minReading = curReading;
     }

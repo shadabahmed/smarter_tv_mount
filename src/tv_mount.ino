@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 #define SETUP_DELAY 2000
-#define LOOP_DELAY 5
+#define LOOP_DELAY 1
 
 MountStateMachine mount;
 void setup() {

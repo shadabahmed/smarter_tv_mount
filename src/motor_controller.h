@@ -17,7 +17,7 @@ class MotorController
     MotorController(int, int, int, int, int);
     void begin() const ;
     void refresh();
-    void run(int, int = 80) const;
+    void run(int, int) const;
     void stop();
     int getCurrent();
   private:

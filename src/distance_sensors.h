@@ -18,7 +18,7 @@ class DistanceSensors {
   DistanceSensors();
   void begin();
   void refresh();
-  int getMinDistance();
+  unsigned int getMinDistance();
   int getDistDiff();
   private:
 #ifdef USE_DISTANCE_SENSORS
