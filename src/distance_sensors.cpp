@@ -1,23 +1,13 @@
 #include "Arduino.h"
 #include "debug.h"
 #include "distance_sensors.h"
-
-DistanceSensors::DistanceSensors() {
-#ifdef USE_DISTANCE_SENSORS
-  for(int i = 0; i < DISTANCE_SENSORS_COUNT; i++) {
-    sensors[i] = new VL53L0X;
-    for(int j = 0; j < DISTANCE_AVG_WINDOW_SIZE; j++) {
-      readings[i][j] = MAX_DISTANCE;
-    }
-  }
-#endif
-}
+#include <list>
 
 void DistanceSensors::begin() {
 #ifdef USE_DISTANCE_SENSORS
-  for(int i : DISTANCE_SENSORS_CONTROL_PINS) {
-    pinMode(i, OUTPUT);
-    digitalWrite(i, LOW);
+  for(auto sensor: std::list<Sensor>(leftSensor, rightSensor)) {
+    pinMode(sensor.controlPin, OUTPUT);
+    digitalWrite(sensor.controlPin, LOW);
     delay(10);
   }
 

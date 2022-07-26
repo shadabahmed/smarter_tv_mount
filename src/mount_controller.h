@@ -33,19 +33,21 @@
 
 class MountController {
   public:
-    MountController();
+    MountController() :
+      upDownController(MOTOR1_SEL_0_PIN, MOTOR1_IN_A_PIN, MOTOR1_IN_B_PIN, MOTOR1_PWM_PIN, MOTOR1_CURRENT_SENSE_INPUT),
+      leftRightController(MOTOR2_SEL_0_PIN, MOTOR2_IN_A_PIN, MOTOR2_IN_B_PIN, MOTOR2_PWM_PIN, MOTOR2_CURRENT_SENSE_INPUT) {};
     void begin();
     void refresh();
-    void moveUp(int dutyCycle) { upDownController->run(UP_DIR, dutyCycle); };
-    void moveDown(int dutyCycle) { upDownController->run(DOWN_DIR, dutyCycle); };
-    void moveLeft(int dutyCycle) { leftRightController->run(LEFT_DIR, dutyCycle); };
-    void moveRight(int dutyCycle) { leftRightController->run(RIGHT_DIR, dutyCycle); };
-    int getUpDownMotorCurrent() { return upDownController->getCurrent(); };
-    int getLeftRightMotorCurrent() { return leftRightController->getCurrent(); };
-    void stop() { upDownController->stop(); leftRightController->stop(); };
+    void moveUp(int dutyCycle) { upDownController.run(UP_DIR, dutyCycle); };
+    void moveDown(int dutyCycle) { upDownController.run(DOWN_DIR, dutyCycle); };
+    void moveLeft(int dutyCycle) { leftRightController.run(LEFT_DIR, dutyCycle); };
+    void moveRight(int dutyCycle) { leftRightController.run(RIGHT_DIR, dutyCycle); };
+    int getUpDownMotorCurrent() { return upDownController.getCurrent(); };
+    int getLeftRightMotorCurrent() { return leftRightController.getCurrent(); };
+    void stop() { upDownController.stop(); leftRightController.stop(); };
   private:
-    MotorController *upDownController;
-    MotorController *leftRightController;
+    MotorController upDownController;
+    MotorController leftRightController;
 };
 
 #endif

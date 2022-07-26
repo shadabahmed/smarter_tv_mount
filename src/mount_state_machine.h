@@ -4,6 +4,7 @@
 #include "mount_controller.h"
 #include "remote.h"
 #include "distance_sensors.h"
+#include <String.h>
 
 // TV CONFIG
 #define TV_PIN 17
@@ -37,17 +38,16 @@ class MountStateMachine {
         MOVING_LEFT, AUTO_MOVING_DOWN, AUTO_MOVING_UP, FAULT };
 
   public:
-    MountStateMachine();
     void begin();
     void update();
   private:
-    static const char * getStateString(State state) { return StateStrings[state]; };
-    static const char * getEventString(Event event) { return EventStrings[event]; };
-    MountController* mountController;
-    Remote* remote;
-    DistanceSensors* sensors;
-    State state;
-    unsigned long faultClearTimestamp;
+    static const String getStateString(State state) { return StateStrings[state]; };
+    static const String getEventString(Event event) { return EventStrings[event]; };
+    MountController mountController;
+    Remote remote;
+    DistanceSensors sensors;
+    State state = STOPPED;
+    unsigned long faultClearTimestamp = 0;
     void refresh();
     void printInfo(Event);
     Event getEvent();
@@ -77,19 +77,19 @@ class MountStateMachine {
     bool transitionToAutoMovingUp();
     bool transitionToAutoMovingDown();
     bool transitionToFault();
-    bool canMoveDown() { return sensors->getMinDistance() <= MAX_DISTANCE; };
+    bool canMoveDown() { return sensors.getMinDistance() <= MAX_DISTANCE; };
     bool canMoveUp() { return wallDistanceCheck(); }
-    bool isCloseToWall() { return sensors->getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
-    bool canMoveLeft()  { return wallDistanceCheck() && sensors->getDistDiff() > MIN_SENSOR_DIFF; }
-    bool canMoveRight()  { return wallDistanceCheck() && sensors->getDistDiff() < MAX_SENSOR_DIFF; }
-    bool wallDistanceCheck() { return sensors->getMinDistance() > MIN_DIST_FROM_WALL; }
+    bool isCloseToWall() { return sensors.getMinDistance() < MIN_SOFT_DIST_FROM_WALL;}
+    bool canMoveLeft()  { return wallDistanceCheck() && sensors.getDistDiff() > MIN_SENSOR_DIFF; }
+    bool canMoveRight()  { return wallDistanceCheck() && sensors.getDistDiff() < MAX_SENSOR_DIFF; }
+    bool wallDistanceCheck() { return sensors.getMinDistance() > MIN_DIST_FROM_WALL; }
     bool isTvTurnedOn() { return digitalRead(TV_PIN) == TV_ON; }
 
-    inline static const char * EventStrings[] =
+    inline static String EventStrings[] =
         { "NONE", "DOWN_PRESSED", "UP_PRESSED", "RIGHT_PRESSED",
           "LEFT_PRESSED","FAULT_DETECTED", "BOTTOM_REACHED","TOP_REACHED",
           "RIGHT_REACHED", "LEFT_REACHED", "TV_TURNED_ON", "TV_TURNED_OFF" };
-    inline static const char * StateStrings[] =
+    inline static String StateStrings[] =
         { "STOPPED", "MOVING_DOWN", "MOVING_UP", "MOVING_RIGHT",
           "MOVING_LEFT","AUTO_MOVING_DOWN", "AUTO_MOVING_UP","FAULT" };
 };

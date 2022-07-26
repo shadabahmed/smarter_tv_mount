@@ -1,17 +1,8 @@
 #include "Arduino.h"
 #include "motor_controller.h"
 
-MotorController::MotorController(int selA, int inA, int inB, int pwm, int currentSense) {
-  this->selA = selA;
-  this->inA = inA;
-  this->inB = inB;
-  this->pwm = pwm;
-  this->currentSense = currentSense;
-  this->currentReadings = new int[CURRENT_READINGS_WINDOW_SIZE];
-  resetCurrentReadings();
-}
-
 void MotorController::begin() const {
+  resetCurrentReadings();
   pinMode(selA, OUTPUT);
   pinMode(inA, OUTPUT);
   pinMode(inB, OUTPUT);
@@ -46,7 +37,7 @@ void MotorController::run(int dir, int dutyCycle) const {
 
 void MotorController::stop() {
   analogWrite(pwm, 0);
-  this->resetCurrentReadings();
+  resetCurrentReadings();
 }
 
 void MotorController::refresh() {

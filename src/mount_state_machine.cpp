@@ -1,26 +1,18 @@
 #include "debug.h"
 #include "mount_state_machine.h"
 
-MountStateMachine::MountStateMachine() {
-  this->mountController = new MountController;
-  this->remote = new Remote;
-  this->sensors = new DistanceSensors;
-  this->state = STOPPED;
-  this->faultClearTimestamp = 0;
-}
-
 void MountStateMachine::begin() {
   Debug.println("Init state machine...");
   pinMode(TV_PIN, INPUT_PULLUP);
   pinMode(FAULT_LED, OUTPUT);
-  mountController->begin();
-  remote->begin();
-  sensors->begin();
+  mountController.begin();
+  remote.begin();
+  sensors.begin();
 }
 
 void MountStateMachine::refresh() {
-  mountController->refresh();
-  sensors->refresh();
+  mountController.refresh();
+  sensors.refresh();
 }
 
 void MountStateMachine::update() {
@@ -31,7 +23,7 @@ void MountStateMachine::update() {
 }
 
 MountStateMachine::Event MountStateMachine::getEvent() {
-  sensors->refresh();
+  sensors.refresh();
   Event events[8] = {
       getUpDownMotorFaultEvent(),
       getLeftRightMotorFaultEvent(),
@@ -61,7 +53,7 @@ MountStateMachine::Event MountStateMachine::getUpDownMotorFaultEvent() {
     return NONE;
   }
 
-  int motorCurrent = mountController->getUpDownMotorCurrent();
+  int motorCurrent = mountController.getUpDownMotorCurrent();
   int maxCurrent = (state == MOVING_UP || state == AUTO_MOVING_UP) ? MAX_UP_CURRENT : MAX_DOWN_CURRENT;
 
   if (motorCurrent >= maxCurrent) {
@@ -85,7 +77,7 @@ MountStateMachine::Event MountStateMachine::getLeftRightMotorFaultEvent() {
     return NONE;
   }
 
-  int motorCurrent = mountController->getLeftRightMotorCurrent();
+  int motorCurrent = mountController.getLeftRightMotorCurrent();
   int maxCurrent = state == MOVING_RIGHT ? MAX_RIGHT_CURRENT : MAX_LEFT_CURRENT;
 
   if (motorCurrent >= maxCurrent) {
@@ -152,7 +144,7 @@ MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
     return NONE;
   }
 
-  int motorCurrent = mountController->getUpDownMotorCurrent();
+  int motorCurrent = mountController.getUpDownMotorCurrent();
   if (motorCurrent <= ZERO_CURRENT_VALUE) {
     if (firstTimestampWithZeroCurrent == 0) {
       firstTimestampWithZeroCurrent = millis();
@@ -166,8 +158,8 @@ MountStateMachine::Event MountStateMachine::getLowerLimitEvent(){
 }
 
 MountStateMachine::Event MountStateMachine::getRemoteEvent(){
-  if (remote->isButtonPressed()) {
-    switch (remote->getButtonCode()) {
+  if (remote.isButtonPressed()) {
+    switch (remote.getButtonCode()) {
       case 8: return UP_PRESSED;
       case 4: return DOWN_PRESSED;
       case 2: return LEFT_PRESSED;
@@ -193,7 +185,7 @@ bool MountStateMachine::transitionState(Event event) {
 }
 
 MountStateMachine::State MountStateMachine::getNextState(Event event) {
-  switch (this->state) {
+  switch (state) {
     case STOPPED: return getNextStateForStopped(event);
     case MOVING_DOWN: return getNextStateForMovingDown(event);
     case MOVING_UP: return getNextStateForMovingUp(event);
@@ -280,7 +272,7 @@ bool MountStateMachine::transitionToStopped() {
   if (state == FAULT) {
     digitalWrite(FAULT_LED, LOW);
   }
-  mountController->stop();
+  mountController.stop();
   state = STOPPED;
   return true;
 }
@@ -289,9 +281,9 @@ bool MountStateMachine::transitionToMovingDown() {
   if (canMoveDown()) {
     // If we are just starting in this state, stop motor to reset motor current readings
     if (state != MOVING_DOWN) {
-      mountController->stop();
+      mountController.stop();
     }
-    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown(FAST_UP_DOWN_DUTY_CYCLE);
+    isCloseToWall() ? mountController.moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController.moveDown(FAST_UP_DOWN_DUTY_CYCLE);
     state = MOVING_DOWN;
   } else {
     transitionToStopped();
@@ -303,9 +295,9 @@ bool MountStateMachine::transitionToMovingUp() {
   if (canMoveUp()) {
     // If we are just starting in this state, stop motor to reset motor current readings
     if (state != MOVING_UP) {
-      mountController->stop();
+      mountController.stop();
     }
-    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp(FAST_UP_DOWN_DUTY_CYCLE);
+    isCloseToWall() ? mountController.moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController.moveUp(FAST_UP_DOWN_DUTY_CYCLE);
     state = MOVING_UP;
   } else {
     transitionToStopped();
@@ -316,9 +308,9 @@ bool MountStateMachine::transitionToMovingUp() {
 bool MountStateMachine::transitionToMovingRight() {
   if (canMoveRight()) {
     if (state != MOVING_RIGHT) {
-      mountController->stop();
+      mountController.stop();
     }
-    mountController->moveRight(LEFT_RIGHT_DUTY_CYCLE);
+    mountController.moveRight(LEFT_RIGHT_DUTY_CYCLE);
     state = MOVING_RIGHT;
   } else {
     transitionToStopped();
@@ -329,9 +321,9 @@ bool MountStateMachine::transitionToMovingRight() {
 bool MountStateMachine::transitionToMovingLeft() {
   if (canMoveLeft()) {
     if (state != MOVING_LEFT) {
-      mountController->stop();
+      mountController.stop();
     }
-    mountController->moveLeft(LEFT_RIGHT_DUTY_CYCLE);
+    mountController.moveLeft(LEFT_RIGHT_DUTY_CYCLE);
     state = MOVING_LEFT;
   } else {
     transitionToStopped();
@@ -342,9 +334,9 @@ bool MountStateMachine::transitionToMovingLeft() {
 bool MountStateMachine::transitionToAutoMovingUp() {
   if (canMoveUp()) {
     if (state != AUTO_MOVING_UP) {
-      mountController->stop();
+      mountController.stop();
     }
-    isCloseToWall() ? mountController->moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveUp(FAST_UP_DOWN_DUTY_CYCLE);
+    isCloseToWall() ? mountController.moveUp(SLOW_UP_DOWN_DUTY_CYCLE) : mountController.moveUp(FAST_UP_DOWN_DUTY_CYCLE);
     state = AUTO_MOVING_UP;
   } else {
     transitionToStopped();
@@ -355,9 +347,9 @@ bool MountStateMachine::transitionToAutoMovingUp() {
 bool MountStateMachine::transitionToAutoMovingDown() {
   if (canMoveDown()) {
     if (state != AUTO_MOVING_DOWN) {
-      mountController->stop();
+      mountController.stop();
     }
-    isCloseToWall() ? mountController->moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController->moveDown(FAST_UP_DOWN_DUTY_CYCLE);
+    isCloseToWall() ? mountController.moveDown(SLOW_UP_DOWN_DUTY_CYCLE) : mountController.moveDown(FAST_UP_DOWN_DUTY_CYCLE);
     state = AUTO_MOVING_DOWN;
   } else {
     transitionToStopped();
@@ -371,7 +363,7 @@ bool MountStateMachine::transitionToFault() {
     digitalWrite(FAULT_LED, HIGH);
     faultClearTimestamp = millis() + FAULT_WAIT_DURATION;
   }
-  mountController->stop();
+  mountController.stop();
   state = FAULT;
   return true;
 }
@@ -382,11 +374,11 @@ void MountStateMachine::printInfo(Event event) {
   Debug.home();
   snprintf(info, sizeof(info), fmt,
            isTvTurnedOn() ? "ON" : "OFF",
-           mountController->getUpDownMotorCurrent(),
-           mountController->getLeftRightMotorCurrent(),
-           sensors->getMinDistance(),
-           sensors->getDistDiff(),
-           getStateString(state),
-           getEventString(event));
+           mountController.getUpDownMotorCurrent(),
+           mountController.getLeftRightMotorCurrent(),
+           sensors.getMinDistance(),
+           sensors.getDistDiff(),
+           getStateString(state).c_str(),
+           getEventString(event).c_str());
     Debug.println(info);
 }
