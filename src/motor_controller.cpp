@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "motor_controller.h"
 
-void MotorController::begin() const {
+void MotorController::begin() {
   resetCurrentReadings();
   pinMode(selA, OUTPUT);
   pinMode(inA, OUTPUT);

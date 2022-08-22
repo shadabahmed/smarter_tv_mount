@@ -16,22 +16,22 @@
 
 class DebugClass {
 public:
-  DebugClass() {
 #ifdef OLED_DEBUG
 #ifdef ARDUINO_AVR_NANO_EVERY
-    display = new SSD1306AsciiWire;
+  DebugClass() : display(SSD1306AsciiWire()) {};
+#elif ARDUINO_NANO_RP2040_CONNECT
+  DebugClass() : display(SSD1306AsciiWire(Wire)) {};
 #endif
-#ifdef ARDUINO_NANO_RP2040_CONNECT
-    display = new SSD1306AsciiWire(Wire);
+#else
+  DebugClass() {};
 #endif
-#endif
-  }
+
   void begin() {
     Serial.begin(SERIAL_BAUD);
 #ifdef OLED_DEBUG
-    display->begin(&Adafruit128x64, 0x3C);
-    display->setFont(Stang5x7);
-    display->clear();
+    display.begin(&Adafruit128x64, 0x3C);
+    display.setFont(Stang5x7);
+    display.clear();
 #endif
   }
 
@@ -40,14 +40,14 @@ public:
     Serial.print("\033[2J"  );
 #endif
 #ifdef OLED_DEBUG
-    display->clear();
-    display->home();
+    display.clear();
+    display.home();
 #endif
   }
 
   void home() {
 #ifdef OLED_DEBUG
-    display->home();
+    display.home();
 #endif
   }
 
@@ -56,7 +56,7 @@ public:
     Serial.print(str);
 #endif
 #ifdef OLED_DEBUG
-  display->print(str);
+  display.print(str);
 #endif
   }
 
@@ -65,7 +65,7 @@ public:
     Serial.print(str);
 #endif
 #ifdef OLED_DEBUG
-    display->print(str);
+    display.print(str);
 #endif
   }
 
@@ -74,7 +74,7 @@ public:
     Serial.print(val);
 #endif
 #ifdef OLED_DEBUG
-    display->print(val);
+    display.print(val);
 #endif
   }
 
@@ -83,8 +83,8 @@ public:
     Serial.println(str);
 #endif
 #ifdef OLED_DEBUG
-    display->println(str);
-    display->clearToEOL();
+    display.println(str);
+    display.clearToEOL();
 #endif
   }
 
@@ -93,8 +93,8 @@ public:
     Serial.println(str);
 #endif
 #ifdef OLED_DEBUG
-    display->println(str);
-    display->clearToEOL();
+    display.println(str);
+    display.clearToEOL();
 #endif
   }
 
@@ -103,12 +103,12 @@ public:
     Serial.println(val);
 #endif
 #ifdef OLED_DEBUG
-    display->println(val);
-    display->clearToEOL();
+    display.println(val);
+    display.clearToEOL();
 #endif
   }
 #ifdef OLED_DEBUG
-  SSD1306AsciiWire* display;
+  SSD1306AsciiWire display;
 #endif
 };
 

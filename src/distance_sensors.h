@@ -16,31 +16,40 @@
 #define DISTANCE_AVG_WINDOW_SIZE 10
 
 struct Sensor {
-  int controlPin;
-  int address;
+  uint8_t controlPin;
+  uint8_t address;
+  uint8_t index;
   VL53L0X driver;
+  uint16_t readings[DISTANCE_AVG_WINDOW_SIZE];
 };
 
 class DistanceSensors {
 public:
 #ifdef USE_DISTANCE_SENSORS
   DistanceSensors() :
-    leftSensor{LEFT_SENSOR_CONTROL_PIN, LEFT_SENSOR_ADDRESS },
-    rightSensor{RIGHT_SENSOR_CONTROL_PIN, RIGHT_SENSOR_ADDRESS } {};
+    leftSensor{.controlPin = LEFT_SENSOR_CONTROL_PIN,
+               .address = LEFT_SENSOR_ADDRESS,
+               .index = 0,
+               .driver = VL53L0X() },
+    rightSensor{
+    .controlPin = RIGHT_SENSOR_CONTROL_PIN,
+    .address = RIGHT_SENSOR_ADDRESS,
+    .index = 1,
+    .driver = VL53L0X()} {};
 #else
-  DistanceSensors()
+  DistanceSensors() = default;
 #endif
 
   void begin();
   void refresh();
+  unsigned int getLeftDist();
+  unsigned int getRightDist();
   unsigned int getMinDistance();
   int getDistDiff();
   private:
 #ifdef USE_DISTANCE_SENSORS
   Sensor leftSensor;
   Sensor rightSensor;
-  unsigned int leftReadings[DISTANCE_AVG_WINDOW_SIZE];
-  unsigned int rightReadings[DISTANCE_AVG_WINDOW_SIZE];
 #endif
 };
 

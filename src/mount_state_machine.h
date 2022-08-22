@@ -31,15 +31,16 @@
 #define MIN_SENSOR_DIFF -100
 
 class MountStateMachine {
-  public: enum Event { NONE, DOWN_PRESSED, UP_PRESSED, RIGHT_PRESSED,
+public:
+  enum Event { NONE, DOWN_PRESSED, UP_PRESSED, RIGHT_PRESSED,
         LEFT_PRESSED, FAULT_DETECTED, BOTTOM_REACHED, TOP_REACHED,
         RIGHT_REACHED, LEFT_REACHED, TV_TURNED_ON, TV_TURNED_OFF };
-  public: enum State { STOPPED, MOVING_DOWN, MOVING_UP, MOVING_RIGHT,
+  enum State { STOPPED, MOVING_DOWN, MOVING_UP, MOVING_RIGHT,
         MOVING_LEFT, AUTO_MOVING_DOWN, AUTO_MOVING_UP, FAULT };
 
-  public:
-    void begin();
-    void update();
+  MountStateMachine() = default;
+  void begin();
+  void update();
   private:
     static const String getStateString(State state) { return StateStrings[state]; };
     static const String getEventString(Event event) { return EventStrings[event]; };

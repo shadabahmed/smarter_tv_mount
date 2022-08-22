@@ -16,7 +16,7 @@ class MotorController
   public:
     MotorController(int selA, int inA, int inB, int pwm, int currentSense):
       selA(selA), inA(inA), inB(inB), pwm(pwm), currentSense(currentSense) {};
-    void begin() const ;
+    void begin();
     void refresh();
     void run(int, int) const;
     void stop();
